@@ -937,12 +937,14 @@ userial_open:
                                      ignore_boot_prop = TRUE;
                                 }
 #endif //READ_BT_ADDR_FROM_PROP
+#ifdef BT_NV_SUPPORT
                                     /* Always read BD address from NV file */
                                 if(ignore_boot_prop && !bt_vendor_nv_read(1, vnd_local_bd_addr))
                                 {
                                    /* Since the BD address is configured in boot time We should not be here */
                                    ALOGI("Failed to read BD address. Use the one from bluedroid stack/ftm");
                                 }
+#endif
                                 if(rome_soc_init(fd, (char*)vnd_local_bd_addr)<0) {
                                     retval = -1;
                                 } else {
