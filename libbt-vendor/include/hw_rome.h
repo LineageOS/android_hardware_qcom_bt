@@ -76,7 +76,8 @@
 /* VS Opcode */
 #define HCI_PATCH_CMD_OCF                       (0)
 #define EDL_SET_BAUDRATE_CMD_OCF        (0x48)
-#define EDL_WIPOWER_VS_CMD_OCF          (0x0c)
+#define EDL_WIPOWER_VS_CMD_OCF          (0x1f)
+#define HCI_VS_GET_ADDON_FEATURES_SUPPORT   (0x1d)
 
 /* VS Commands */
 #define VSC_SET_BAUDRATE_REQ_LEN        (1)
@@ -102,6 +103,7 @@
 #define EDL_APP_VER_RES_EVT                  (0x02)
 #define EDL_WIP_QUERY_CHARGING_STATUS_EVT    (0x18)
 #define EDL_WIP_START_HANDOFF_TO_HOST_EVENT  (0x19)
+#define HCI_VS_GET_ADDON_FEATURES_EVENT      (0x1B)
 
 
 /* Status Codes of HCI CMD execution*/
@@ -117,6 +119,9 @@
 /* Wipower status codes */
 #define WIPOWER_IN_EMBEDDED_MODE 0x01
 #define NON_WIPOWER_MODE 0x02
+
+/* mask to validate support for wipower */
+#define ADDON_FEATURES_EVT_WIPOWER_MASK      (0x01)
 
 /* TLV_TYPE */
 #define TLV_TYPE_PATCH                  (1)
@@ -155,6 +160,14 @@
 #define ROME_RAMPATCH_TLV_3_0_2_PATH    "/system/etc/firmware/rampatch_tlv_3.2.tlv"
 #define ROME_NVM_TLV_3_0_2_PATH         "/system/etc/firmware/nvm_tlv_3.2.bin"
 
+#define ROME_3_1_FW_SU  "bprm.cnss.3.1"
+#define ROME_3_2_FW_SU  "btfwp.cnss.3.2"
+
+/* This header value in rampatch file decides event handling mechanism in the HOST */
+#define ROME_SKIP_EVT_NONE     0x00
+#define ROME_SKIP_EVT_VSE      0x01
+#define ROME_SKIP_EVT_CC       0x02
+#define ROME_SKIP_EVT_VSE_CC   0x03
 
 /******************************************************************************
 **  Local type definitions
@@ -179,7 +192,8 @@ typedef struct {
     unsigned int  tlv_patch_data_len;
     unsigned char sign_ver;
     unsigned char sign_algorithm;
-    unsigned short reserved1;
+    unsigned char dwnd_cfg;
+    unsigned char reserved1;
     unsigned short prod_id;
     unsigned short build_ver;
     unsigned short patch_ver;

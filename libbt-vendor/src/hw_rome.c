@@ -68,11 +68,14 @@ unsigned char *pdata_buffer = NULL;
 patch_info rampatch_patch_info;
 int rome_ver = ROME_VER_UNKNOWN;
 unsigned char gTlv_type;
+unsigned char gTlv_dwndCfg;
 static unsigned int wipower_flag = 0;
 static unsigned int wipower_handoff_ready = 0;
 char *rampatch_file_path;
 char *nvm_file_path;
+char *fw_su_info = NULL;
 extern char enable_extldo;
+unsigned char wait_vsc_evt = TRUE;
 
 /******************************************************************************
 **  Extern variables
@@ -218,7 +221,13 @@ int get_vs_hci_event(unsigned char *rsp)
                ALOGE("%s: WiPower Charging hand off not ready!!!", __FUNCTION__);
             }
             break;
-
+        case HCI_VS_GET_ADDON_FEATURES_EVENT:
+            if ((rsp[4] & ADDON_FEATURES_EVT_WIPOWER_MASK))
+            {
+               ALOGD("%s: WiPower feature supported!!", __FUNCTION__);
+               property_set("persist.bluetooth.a4wp", "true");
+            }
+            break;
         default:
             ALOGE("%s: Not a valid status!!!", __FUNCTION__);
             err = -1;
@@ -328,14 +337,16 @@ int hci_send_vs_cmd(int fd, unsigned char *cmd, unsigned char *rsp, int size)
         goto failed;
     }
 
-    /* Check for response from the Controller */
-    if (read_vs_hci_event(fd, rsp, HCI_MAX_EVENT_SIZE) < 0) {
-        ret = -ETIMEDOUT;
-        ALOGI("%s: Failed to get HCI-VS Event from SOC", __FUNCTION__);
-        goto failed;
+    if (wait_vsc_evt) {
+        /* Check for response from the Controller */
+        if (read_vs_hci_event(fd, rsp, HCI_MAX_EVENT_SIZE) < 0) {
+           ret = -ETIMEDOUT;
+           ALOGI("%s: Failed to get HCI-VS Event from SOC", __FUNCTION__);
+           goto failed;
+        }
+        ALOGI("%s: Received HCI-Vendor Specific Event from SOC", __FUNCTION__);
     }
 
-    ALOGI("%s: Received HCI-Vendor Specific Event from SOC", __FUNCTION__);
 failed:
     return ret;
 }
@@ -775,6 +786,7 @@ int rome_get_tlv_file(char *file_path)
 
     /* To handle different event between rampatch and NVM */
     gTlv_type = ptlv_header->tlv_type;
+    gTlv_dwndCfg = ptlv_header->tlv.patch.dwnd_cfg;
 
     if(ptlv_header->tlv_type == TLV_TYPE_PATCH){
         ALOGI("====================================================");
@@ -786,10 +798,23 @@ int rome_get_tlv_file(char *file_path)
         ALOGI("Patch Data Length\t\t\t : %d bytes",ptlv_header->tlv.patch.tlv_patch_data_len);
         ALOGI("Signing Format Version\t : 0x%x", ptlv_header->tlv.patch.sign_ver);
         ALOGI("Signature Algorithm\t\t : 0x%x", ptlv_header->tlv.patch.sign_algorithm);
+        ALOGI("Event Handling\t\t\t : 0x%x", ptlv_header->tlv.patch.dwnd_cfg);
         ALOGI("Reserved\t\t\t : 0x%x", ptlv_header->tlv.patch.reserved1);
         ALOGI("Product ID\t\t\t : 0x%04x\n", ptlv_header->tlv.patch.prod_id);
         ALOGI("Rom Build Version\t\t : 0x%04x\n", ptlv_header->tlv.patch.build_ver);
         ALOGI("Patch Version\t\t : 0x%04x\n", ptlv_header->tlv.patch.patch_ver);
+        if (fw_su_info ) {
+            FILE *btversionfile = 0;
+            if (NULL != (btversionfile = fopen(BT_VERSION_FILEPATH, "a+b"))) {
+                fprintf(btversionfile, "Bluetooth Controller FW SU Version : 0x%04x (%s-%05d)\n",
+                    ptlv_header->tlv.patch.patch_ver,
+                    fw_su_info,
+                    (ptlv_header->tlv.patch.patch_ver - 0x0111 -1 )
+                    );
+                fclose(btversionfile);
+            }
+        }
+
         ALOGI("Reserved\t\t\t : 0x%x\n", ptlv_header->tlv.patch.reserved2);
         ALOGI("Patch Entry Address\t\t : 0x%x\n", (ptlv_header->tlv.patch.patch_entry_addr));
         ALOGI("====================================================");
@@ -894,19 +919,81 @@ int rome_tlv_dnld_req(int fd, int tlv_size)
     ALOGI("%s: TLV size: %d, Total Seg num: %d, remain size: %d",
         __FUNCTION__,tlv_size, total_segment, remain_size);
 
+    if (gTlv_type == TLV_TYPE_PATCH) {
+       /* Prior to Rome version 3.2(including inital few rampatch release of Rome 3.2), the event
+        * handling mechanism is ROME_SKIP_EVT_NONE. After few release of rampatch for Rome 3.2, the
+        * mechamism is changed to ROME_SKIP_EVT_VSE_CC. Rest of the mechanism is not used for now
+        */
+       switch(gTlv_dwndCfg)
+       {
+           case ROME_SKIP_EVT_NONE:
+              wait_vsc_evt = TRUE;
+              wait_cc_evt = TRUE;
+              ALOGI("Event handling type: ROME_SKIP_EVT_NONE");
+              break;
+           case ROME_SKIP_EVT_VSE_CC:
+              wait_vsc_evt = FALSE;
+              wait_cc_evt = FALSE;
+              ALOGI("Event handling type: ROME_SKIP_EVT_VSE_CC");
+              break;
+           /* Not handled for now */
+           case ROME_SKIP_EVT_VSE:
+           case ROME_SKIP_EVT_CC:
+           default:
+              ALOGE("Unsupported Event handling: %d", gTlv_dwndCfg);
+              break;
+       }
+    } else {
+        wait_vsc_evt = TRUE;
+        wait_cc_evt = TRUE;
+    }
+
     for(i=0;i<total_segment ;i++){
-        /* In case of ROME 1.1, last rampatch segment command will not wait for
-            command complete event */
-        wait_cc_evt = ((rome_ver >= ROME_VER_1_1) && (gTlv_type == TLV_TYPE_PATCH )
-             && !remain_size && ((i+1) == total_segment))? FALSE: TRUE;
+        if ((i+1) == total_segment) {
+             if ((rome_ver >= ROME_VER_1_1) && (rome_ver < ROME_VER_3_2) && (gTlv_type == TLV_TYPE_PATCH)) {
+               /* If the Rome version is from 1.1 to 3.1
+                * 1. No CCE for the last command segment but all other segment
+                * 2. All the command segments get VSE including the last one
+                */
+                wait_cc_evt = !remain_size ? FALSE: TRUE;
+             } else if ((rome_ver == ROME_VER_3_2) && (gTlv_type == TLV_TYPE_PATCH)) {
+                /* If the Rome version is 3.2
+                 * 1. None of the command segments receive CCE
+                 * 2. No command segments receive VSE except the last one
+                 * 3. If gTlv_dwndCfg is ROME_SKIP_EVT_NONE then the logic is
+                 *    same as Rome 2.1, 2.2, 3.0
+                 */
+                 if (gTlv_dwndCfg == ROME_SKIP_EVT_NONE) {
+                    wait_cc_evt = !remain_size ? FALSE: TRUE;
+                 } else if (gTlv_dwndCfg == ROME_SKIP_EVT_VSE_CC) {
+                    wait_vsc_evt = !remain_size ? TRUE: FALSE;
+                 }
+             }
+        }
+
         if((err = rome_tlv_dnld_segment(fd, i, MAX_SIZE_PER_TLV_SEGMENT, wait_cc_evt )) < 0)
             goto error;
     }
 
-    /* In case remain data still remain, last rampatch segment command will not wait
-        for command complete event here */
-    wait_cc_evt = ((rome_ver >= ROME_VER_1_1) && (gTlv_type == TLV_TYPE_PATCH )
-         && remain_size )? FALSE:TRUE;
+    if ((rome_ver >= ROME_VER_1_1) && (rome_ver < ROME_VER_3_2) && (gTlv_type == TLV_TYPE_PATCH)) {
+       /* If the Rome version is from 1.1 to 3.1
+        * 1. No CCE for the last command segment but all other segment
+        * 2. All the command segments get VSE including the last one
+        */
+        wait_cc_evt = remain_size ? FALSE: TRUE;
+    } else if ((rome_ver == ROME_VER_3_2) && (gTlv_type == TLV_TYPE_PATCH)) {
+        /* If the Rome version is 3.2
+         * 1. None of the command segments receive CCE
+         * 2. No command segments receive VSE except the last one
+         * 3. If gTlv_dwndCfg is ROME_SKIP_EVT_NONE then the logic is
+         *    same as Rome 2.1, 2.2, 3.0
+         */
+        if (gTlv_dwndCfg == ROME_SKIP_EVT_NONE) {
+           wait_cc_evt = remain_size ? FALSE: TRUE;
+        } else if (gTlv_dwndCfg == ROME_SKIP_EVT_VSE_CC) {
+           wait_vsc_evt = remain_size ? TRUE: FALSE;
+        }
+    }
 
     if(remain_size) err =rome_tlv_dnld_segment(fd, i, remain_size, wait_cc_evt);
 
@@ -1454,6 +1541,42 @@ error:
     return err;
 }
 
+int addon_feature_req(int fd)
+{
+    int size, err = 0;
+    unsigned char cmd[HCI_MAX_CMD_SIZE];
+    unsigned char rsp[HCI_MAX_EVENT_SIZE];
+    hci_command_hdr *cmd_hdr;
+    int flags;
+
+    memset(cmd, 0x0, HCI_MAX_CMD_SIZE);
+
+    cmd_hdr = (void *) (cmd + 1);
+    cmd[0]  = HCI_COMMAND_PKT;
+    cmd_hdr->opcode = cmd_opcode_pack(HCI_VENDOR_CMD_OGF, HCI_VS_GET_ADDON_FEATURES_SUPPORT);
+    cmd_hdr->plen     = 0x00;
+
+    /* Total length of the packet to be sent to the Controller */
+    size = (HCI_CMD_IND + HCI_COMMAND_HDR_SIZE + EDL_WIP_QUERY_CHARGING_STATUS_LEN);
+
+    ALOGD("%s: Sending HCI_VS_GET_ADDON_FEATURES_SUPPORT", __FUNCTION__);
+    ALOGD("HCI-CMD: \t0x%x \t0x%x \t0x%x \t0x%x \t0x%x", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4]);
+    err = hci_send_vs_cmd(fd, (unsigned char *)cmd, rsp, size);
+    if ( err != size) {
+        ALOGE("Failed to send HCI_VS_GET_ADDON_FEATURES_SUPPORT command!");
+        goto error;
+    }
+
+    err = read_hci_event(fd, rsp, HCI_MAX_EVENT_SIZE);
+    if (err < 0) {
+        ALOGE("%s: Failed to get feature request", __FUNCTION__);
+        goto error;
+    }
+error:
+    return err;
+}
+
+
 int check_embedded_mode(int fd) {
     int err = 0;
 
@@ -1468,6 +1591,17 @@ int check_embedded_mode(int fd) {
     ALOGE("%s: wipower_flag: %d", __FUNCTION__, wipower_flag);
 
     return wipower_flag;
+}
+
+int rome_get_addon_feature_list(fd) {
+    int err = 0;
+
+    /* Get addon features that are supported by FW */
+    if ((err = addon_feature_req(fd)) < 0)
+    {
+        ALOGE("%s: failed (0x%x)", __FUNCTION__, err);
+    }
+    return err;
 }
 
 int rome_wipower_forward_handoff_req(int fd)
@@ -1640,10 +1774,12 @@ int rome_soc_init(int fd, char *bdaddr)
         case ROME_VER_3_0:
             rampatch_file_path = ROME_RAMPATCH_TLV_3_0_0_PATH;
             nvm_file_path = ROME_NVM_TLV_3_0_0_PATH;
+            fw_su_info = ROME_3_1_FW_SU;
             goto download;
         case ROME_VER_3_2:
             rampatch_file_path = ROME_RAMPATCH_TLV_3_0_2_PATH;
             nvm_file_path = ROME_NVM_TLV_3_0_2_PATH;
+            fw_su_info = ROME_3_2_FW_SU;
 
 download:
             /* Change baud rate 115.2 kbps to 3Mbps*/
