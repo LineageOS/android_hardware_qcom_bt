@@ -14,7 +14,11 @@
 # limitations under the License.
 #
 
+ifneq ($(TARGET_2ND_ARCH),)
+intermediates := $(call local-intermediates-dir,,$(TARGET_2ND_ARCH_VAR_PREFIX))
+else
 intermediates := $(local-intermediates-dir)
+endif
 
 SRC := $(call my-dir)/include/$(addprefix vnd_, $(addsuffix .txt,$(basename $(TARGET_DEVICE))))
 ifeq (,$(wildcard $(SRC)))
@@ -22,7 +26,7 @@ ifeq (,$(wildcard $(SRC)))
 SRC := $(call my-dir)/include/vnd_generic.txt
 endif
 GEN := $(intermediates)/vnd_buildcfg.h
-TOOL := $(TOP_DIR)external/bluetooth/bluedroid/tools/gen-buildcfg.sh
+TOOL := $(TOP_DIR)hardware/qcom/bt/libbt-vendor/gen-buildcfg.sh
 
 $(GEN): PRIVATE_PATH := $(call my-dir)
 $(GEN): PRIVATE_CUSTOM_TOOL = $(TOOL) $< $@
