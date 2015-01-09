@@ -84,7 +84,7 @@ LOCAL_CFLAGS += -DENABLE_ANT
 endif
 #LOCAL_CFLAGS += -DREAD_BT_ADDR_FROM_PROP
 
-#include $(LOCAL_PATH)/vnd_buildcfg.mk
+include $(LOCAL_PATH)/vnd_buildcfg.mk
 
 include $(BUILD_SHARED_LIBRARY)
 
