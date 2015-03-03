@@ -393,17 +393,19 @@ static int bt_powerup(int en )
     }
     if ((fd_ldo = open(enable_ldo_path, O_RDWR)) < 0) {
         ALOGE("open(%s) failed: %s (%d)", enable_ldo_path, strerror(errno), errno);
-        return -1;
     }
-    size = read(fd_ldo, &enable_ldo, sizeof(enable_ldo));
-    close(fd_ldo);
-    if (size <= 0) {
-        ALOGE("read(%s) failed: %s (%d)", enable_ldo_path, strerror(errno), errno);
-        return -1;
-    }
-    if (!memcmp(enable_ldo, "true", 4)) {
-        ALOGI("External LDO has been configured");
-        enable_extldo = TRUE;
+
+    if(fd_ldo >= 0) {
+        size = read(fd_ldo, &enable_ldo, sizeof(enable_ldo));
+        close(fd_ldo);
+        if (size <= 0) {
+            ALOGE("read(%s) failed: %s (%d)", enable_ldo_path, strerror(errno), errno);
+            return -1;
+        }
+        if (!memcmp(enable_ldo, "true", 4)) {
+            ALOGI("External LDO has been configured");
+            enable_extldo = TRUE;
+        }
     }
 
     ALOGE("Write %c to rfkill\n", on);
