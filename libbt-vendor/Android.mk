@@ -67,6 +67,8 @@ LOCAL_CFLAGS += -DBT_NV_SUPPORT
 LOCAL_SHARED_LIBRARIES += libbtnv
 endif
 
+#LOCAL_CFLAGS += -DREAD_BT_ADDR_FROM_PROP
+
 include $(LOCAL_PATH)/vnd_buildcfg.mk
 
 include $(BUILD_SHARED_LIBRARY)
