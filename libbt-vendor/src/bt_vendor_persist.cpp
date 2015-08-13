@@ -27,7 +27,27 @@
 #include "bt_vendor_persist.h"
 
 #ifdef BT_NV_SUPPORT
+#ifdef BT_NV_SUPPORT_DL
+#include <dlfcn.h>
+// All figured out through investigation of this code...
+typedef struct {
+   unsigned char bd_addr[6];
+   // This is a bit dangerous, but this struct
+   // is unknown (however not used outside of this context)
+   unsigned char unknown[58];
+} nv_persist_item_type;
+typedef enum {
+  NV_SUCCESS = 0,
+} nv_persist_stat_enum_type;
+#define TRUE 1
+#define FALSE 0
+#define NV_BD_ADDR_I 1
+// ...except this, which was found through experimentation
+#define NV_READ_F 0
+#else
 #include "bt_nv.h"
+#endif
+#define LOG_TAG "QCOM-BTNV"
 #include <utils/Log.h>
 
 /*===========================================================================
@@ -56,11 +76,28 @@ uint8_t bt_vendor_nv_read
   nv_persist_item_type my_nv_item;
   nv_persist_stat_enum_type cmd_result;
   boolean result = FALSE;
+#ifdef BT_NV_SUPPORT_DL
+  int (*bt_nv_cmd)(int, int, nv_persist_item_type *, int);
+  void *lib = dlopen("libbtnv.so", RTLD_NOW);
+
+  if (!lib) {
+    ALOGE("Failed to open libbtnv.so: %s", dlerror());
+    return FALSE;
+  }
+
+  bt_nv_cmd = (int (*)(int, int, nv_persist_item_type *, int))dlsym(lib, "bt_nv_cmd");
+  if (!bt_nv_cmd) {
+    ALOGE("Failed to find bt_nv_cmd: %s", dlerror());
+    dlclose(lib);
+    return FALSE;
+  }
+#endif
 
   switch(nv_item)
   {
     case NV_BD_ADDR_I:
-      cmd_result = (nv_persist_stat_enum_type)bt_nv_cmd(NV_READ_F,  NV_BD_ADDR_I, &my_nv_item);
+      // A strange default parameter is used here. A debugger shows 4 parameters being passed.
+      cmd_result = (nv_persist_stat_enum_type)bt_nv_cmd(NV_READ_F,  NV_BD_ADDR_I, &my_nv_item, 0);
       ALOGI("CMD result: %d", cmd_result);
       if (NV_SUCCESS != cmd_result)
       {
@@ -86,6 +123,9 @@ uint8_t bt_vendor_nv_read
       }
       break;
   }
+#ifdef BT_NV_SUPPORT_DL
+  dlclose(lib);
+#endif
   return result;
 }
 #endif /* End of BT_NV_SUPPORT */
