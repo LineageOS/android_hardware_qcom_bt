@@ -28,7 +28,9 @@
 
 #ifdef BT_NV_SUPPORT
 #include "bt_nv.h"
+#define LOG_TAG "QCOM-BTNV"
 #include <utils/Log.h>
+#include <dlfcn.h>
 
 /*===========================================================================
 FUNCTION   bt_vendor_nv_read
@@ -56,11 +58,25 @@ uint8_t bt_vendor_nv_read
   nv_persist_item_type my_nv_item;
   nv_persist_stat_enum_type cmd_result;
   boolean result = FALSE;
+  int (*bt_nv_cmd_func)(int, int, nv_persist_item_type *);
+  void *lib = dlopen("libbtnv.so", RTLD_NOW);
+
+  if (!lib) {
+    ALOGE("Failed to open libbtnv.so: %s", dlerror());
+    return FALSE;
+  }
+
+  bt_nv_cmd_func = (int (*)(int, int, nv_persist_item_type *))dlsym(lib, "bt_nv_cmd");
+  if (!bt_nv_cmd_func) {
+    ALOGE("Failed to find bt_nv_cmd: %s", dlerror());
+    dlclose(lib);
+    return FALSE;
+  }
 
   switch(nv_item)
   {
     case NV_BD_ADDR_I:
-      cmd_result = (nv_persist_stat_enum_type)bt_nv_cmd(NV_READ_F,  NV_BD_ADDR_I, &my_nv_item);
+      cmd_result = (nv_persist_stat_enum_type)bt_nv_cmd_func(NV_READ_F,  NV_BD_ADDR_I, &my_nv_item);
       ALOGI("CMD result: %d", cmd_result);
       if (NV_SUCCESS != cmd_result)
       {
@@ -86,6 +102,7 @@ uint8_t bt_vendor_nv_read
       }
       break;
   }
+  dlclose(lib);
   return result;
 }
 #endif /* End of BT_NV_SUPPORT */
