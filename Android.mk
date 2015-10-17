@@ -1,3 +1,5 @@
+ifeq ($(call my-dir),$(call project-path-for,bt-vendor))
+
 # TODO:  Find a better way to separate build configs for ADP vs non-ADP devices
 ifneq ($(BOARD_IS_AUTOMOTIVE),true)
   ifneq ($(filter msm8960 msm8x27 msm8226,$(TARGET_BOARD_PLATFORM)),)
@@ -20,4 +22,6 @@ ifneq ($(BOARD_IS_AUTOMOTIVE),true)
       endif
     endif
   endif
+endif
+
 endif
