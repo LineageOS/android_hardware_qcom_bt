@@ -26,7 +26,7 @@ ifeq (,$(wildcard $(SRC)))
 SRC := $(call my-dir)/include/vnd_generic.txt
 endif
 GEN := $(intermediates)/vnd_buildcfg.h
-TOOL := $(TOP_DIR)hardware/qcom/bt/libbt-vendor/gen-buildcfg.sh
+TOOL := $(LOCAL_PATH)/gen-buildcfg.sh
 
 $(GEN): PRIVATE_PATH := $(call my-dir)
 $(GEN): PRIVATE_CUSTOM_TOOL = $(TOOL) $< $@

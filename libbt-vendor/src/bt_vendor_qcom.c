@@ -332,7 +332,7 @@ static int bt_powerup(int en )
 {
     char rfkill_type[64], *enable_ldo_path = NULL;
     char type[16], enable_ldo[6];
-    int fd, size, i, ret, fd_ldo;
+    int fd = 0, size, i, ret, fd_ldo;
 
     char disable[PROPERTY_VALUE_MAX];
     char state;
@@ -436,14 +436,17 @@ static int bt_powerup(int en )
     ALOGE("Write %c to rfkill\n", on);
 
     /* Write value to control rfkill */
-    if ((size = write(fd, &on, 1)) < 0) {
-        ALOGE("write(%s) failed: %s (%d)",rfkill_state, strerror(errno),errno);
+    if(fd >= 0) {
+        if ((size = write(fd, &on, 1)) < 0) {
+            ALOGE("write(%s) failed: %s (%d)",rfkill_state, strerror(errno),errno);
 #ifdef WIFI_BT_STATUS_SYNC
-        bt_semaphore_release(lock_fd);
-        bt_semaphore_destroy(lock_fd);
+            bt_semaphore_release(lock_fd);
+            bt_semaphore_destroy(lock_fd);
 #endif
-        return -1;
+            return -1;
+        }
     }
+
 #ifdef BT_SOC_TYPE_ROME
     if(on == '0'){
         ALOGE("Stopping HCI filter as part of CTRL:OFF");
@@ -646,9 +649,10 @@ static int op(bt_vendor_opcode_t opcode, void *param)
     char* tok;
 #endif
     bool skip_init = true;
+    int  opcode_init = opcode;
     ALOGV("bt-vendor : op for %d", opcode);
 
-    switch(opcode)
+    switch(opcode_init)
     {
         case BT_VND_OP_POWER_CTRL:
             {
@@ -723,12 +727,11 @@ static int op(bt_vendor_opcode_t opcode, void *param)
                 is_ant_req = true;
                 //fall through
 #endif
-
 #endif
         case BT_VND_OP_USERIAL_OPEN:
             {
                 int (*fd_array)[] = (int (*)[]) param;
-                int idx, fd;
+                int idx, fd = -1, fd_filter = -1;
                 ALOGI("bt-vendor : BT_VND_OP_USERIAL_OPEN");
                 switch(btSocType)
                 {
@@ -841,16 +844,12 @@ static int op(bt_vendor_opcode_t opcode, void *param)
                                        ALOGI("Failed to read BD address. Use the one from bluedroid stack/ftm");
                                     }
 #endif
-                                    if(rome_soc_init(fd,vnd_local_bd_addr)<0) {
+                                    if(rome_soc_init(fd, (char*)vnd_local_bd_addr)<0) {
                                         retval = -1;
-                                        userial_clock_operation(fd, USERIAL_OP_CLK_OFF);
                                     } else {
                                         ALOGV("rome_soc_init is completed");
                                         property_set("wc_transport.soc_initialized", "1");
-                                        userial_clock_operation(fd, USERIAL_OP_CLK_OFF);
                                         skip_init = false;
-                                        /*Close the UART port*/
-                                        close(fd);
                                     }
                                 }
                             }
@@ -864,40 +863,46 @@ static int op(bt_vendor_opcode_t opcode, void *param)
                                  start_hci_filter();
                                  if (is_ant_req) {
                                      ALOGV("connect to ant channel");
-                                     ant_fd = fd = connect_to_local_socket("ant_sock");
+                                     ant_fd = fd_filter = connect_to_local_socket("ant_sock");
                                  }
                                  else
 #endif
                                  {
                                      ALOGV("connect to bt channel");
-                                     vnd_userial.fd = fd = connect_to_local_socket("bt_sock");
+                                     vnd_userial.fd = fd_filter = connect_to_local_socket("bt_sock");
                                  }
 
-                                 if (fd != -1) {
+                                 if (fd_filter != -1) {
                                      ALOGV("%s: received the socket fd: %d is_ant_req: %d\n",
-                                                                 __func__, fd, is_ant_req);
+                                                                 __func__, fd_filter, is_ant_req);
                                      if((strcmp(emb_wp_mode, "true") == 0) && !is_ant_req) {
                                          if (rome_ver >= ROME_VER_3_0) {
                                              /*  get rome supported feature request */
                                              ALOGE("%s: %x08 %0x", __FUNCTION__,rome_ver, ROME_VER_3_0);
-                                             rome_get_addon_feature_list(fd);
+                                             rome_get_addon_feature_list(fd_filter);
                                          }
                                      }
                                      if (!skip_init) {
                                          /*Skip if already sent*/
-                                         enable_controller_log(fd, is_ant_req);
+                                         enable_controller_log(fd_filter, is_ant_req);
                                          skip_init = true;
                                      }
-                                     for (idx=0; idx < CH_MAX; idx++)
-                                          (*fd_array)[idx] = fd;
-                                          retval = 1;
+
+                                     for (idx=0; idx < CH_MAX; idx++) {
+                                         (*fd_array)[idx] = fd_filter;
                                      }
+
+                                     retval = 1;
+                                 }
                                  else {
                                      retval = -1;
                                  }
-                             } else {
-                               if (fd >= 0)
-                                  close(fd);
+                             }
+
+                             if (fd >= 0) {
+                                 userial_clock_operation(fd, USERIAL_OP_CLK_OFF);
+                                 /*Close the UART port*/
+                                 close(fd);
                              }
                         }
                         break;
@@ -944,10 +949,11 @@ static int op(bt_vendor_opcode_t opcode, void *param)
             break;
 
         case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
-            if (btSocType ==  BT_SOC_AR3K) {
+            {
                 uint32_t *timeout_ms = (uint32_t *) param;
                 *timeout_ms = 1000;
             }
+
             break;
 
         case BT_VND_OP_LPM_SET_MODE:
@@ -1078,7 +1084,7 @@ static void ssr_cleanup(int reason) {
 
     if ((btSocType = get_bt_soc_type()) < 0) {
         ALOGE("%s: Failed to detect BT SOC Type", __FUNCTION__);
-        return -1;
+        return;
     }
 
     if (btSocType == BT_SOC_ROME) {
