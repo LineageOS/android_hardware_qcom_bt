@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1fa4df85_ce21bbfd",
+        "filename": "libbt-vendor/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 2936
+      },
+      "writtenOn": "2016-09-05T17:16:05Z",
+      "side": 1,
+      "message": "Maybe you want to guard this with some flag, instead of wholesale removing it?",
+      "revId": "84230177ceaa70f4748985b96232c73c0af4857f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
