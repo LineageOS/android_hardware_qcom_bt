@@ -93,9 +93,23 @@
 
 /* UART CLOCK IOCTLS*/
 /* UART CLOCK IOCTLS*/
+#ifdef TIOCPMGET
 #define USERIAL_OP_CLK_ON    TIOCPMGET    /* PM get */
+#else
+#define USERIAL_OP_CLK_ON    0x5441       /* PM get */
+#endif
+
+#ifdef TIOCPMPUT
 #define USERIAL_OP_CLK_OFF    TIOCPMPUT   /* PM put */
+#else
+#define USERIAL_OP_CLK_OFF    0x5442      /* PM put */
+#endif
+
+#ifdef TIOCPMACT
 #define USERIAL_OP_CLK_STATE    TIOCPMACT    /* PM is active */
+#else
+#define USERIAL_OP_CLK_STATE    0x5443       /* PM is active */
+#endif
 
 /******************************************************************************
 **  Type definitions
