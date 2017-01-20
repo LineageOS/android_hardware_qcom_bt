@@ -88,6 +88,10 @@ endif
 
 #include $(LOCAL_PATH)/vnd_buildcfg.mk
 
+ifeq ($(BOARD_HAS_BTFW_IN_SYSTEM), true)
+LOCAL_CFLAGS += -DBTFW_IN_SYSTEM
+endif
+
 include $(BUILD_SHARED_LIBRARY)
 
 endif # BOARD_HAVE_BLUETOOTH_QCOM
