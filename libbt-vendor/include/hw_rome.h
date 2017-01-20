@@ -158,10 +158,17 @@
 #define ROME_NVM_TLV_1_0_3_PATH           "/system/etc/firmware/nvm_tlv_1.3.bin"
 #define ROME_RAMPATCH_TLV_2_0_1_PATH      "/system/etc/firmware/rampatch_tlv_2.1.tlv"
 #define ROME_NVM_TLV_2_0_1_PATH           "/system/etc/firmware/nvm_tlv_2.1.bin"
+#ifndef BTFW_IN_SYSTEM
 #define ROME_RAMPATCH_TLV_3_0_0_PATH      "/bt_firmware/image/btfw30.tlv"
 #define ROME_NVM_TLV_3_0_0_PATH           "/bt_firmware/image/btnv30.bin"
 #define ROME_RAMPATCH_TLV_3_0_2_PATH      "/bt_firmware/image/btfw32.tlv"
 #define ROME_NVM_TLV_3_0_2_PATH           "/bt_firmware/image/btnv32.bin"
+#else
+#define ROME_RAMPATCH_TLV_3_0_0_PATH      "/system/etc/firmware/btfw30.tlv"
+#define ROME_NVM_TLV_3_0_0_PATH           "/system/etc/firmware/btnv30.bin"
+#define ROME_RAMPATCH_TLV_3_0_2_PATH      "/system/etc/firmware/btfw32.tlv"
+#define ROME_NVM_TLV_3_0_2_PATH           "/system/etc/firmware/btnv32.bin"
+#endif
 
 #define ROME_3_1_FW_SU  "bprm.cnss.3.1"
 #define ROME_3_2_FW_SU  "btfwp.cnss.3.2"
