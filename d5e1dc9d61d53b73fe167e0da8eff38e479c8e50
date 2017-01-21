@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a437d4f_23468224",
+        "filename": "libbt-vendor/include/hw_rome.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 2936
+      },
+      "writtenOn": "2017-01-21T04:51:24Z",
+      "side": 1,
+      "message": "Can\u0027t you symlink your firmware in /system/etc/firmware to the location expected above?",
+      "revId": "d5e1dc9d61d53b73fe167e0da8eff38e479c8e50",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
