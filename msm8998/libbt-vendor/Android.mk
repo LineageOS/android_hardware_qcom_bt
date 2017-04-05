@@ -37,6 +37,7 @@ endif
 
 ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
 LOCAL_CFLAGS += -DPANIC_ON_SOC_CRASH
+LOCAL_CFLAGS += -DENABLE_DBG_FLAGS
 endif
 
 LOCAL_C_INCLUDES += \
@@ -45,6 +46,11 @@ LOCAL_C_INCLUDES += \
         system/bt/hci/include \
         $(TARGET_OUT_HEADERS)/bt/hci_qcomm_init \
         $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
+
+ifeq ($(TARGET_COMPILE_WITH_MSM_KERNEL),true)
+LOCAL_ADDITIONAL_DEPENDENCIES += \
+$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
+endif
 
 ifeq ($(BOARD_HAS_QCA_BT_AR3002), true)
 LOCAL_C_FLAGS := \
