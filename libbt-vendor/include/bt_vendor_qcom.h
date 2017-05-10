@@ -44,6 +44,12 @@ typedef enum {
 }bt_soc_type;
 
 typedef enum {
+    FM_VND_OP_POWER_CTRL = (unsigned int)BT_VND_OP_A2DP_OFFLOAD_STOP + 1,
+    BT_VND_OP_FM_USERIAL_OPEN,
+    BT_VND_OP_FM_USERIAL_CLOSE,
+}bt_fm_serial;
+
+typedef enum {
     BT_VND_OP_ANT_USERIAL_OPEN = 254,
     BT_VND_OP_ANT_USERIAL_CLOSE
 }ant_serial;
