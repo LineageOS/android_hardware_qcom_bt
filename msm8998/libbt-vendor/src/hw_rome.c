@@ -800,7 +800,6 @@ error:
     return err;
 }
 
-/* This function is called with q_lock held and q is non-NULL */
 int rome_get_tlv_file(char *file_path)
 {
     FILE * pFile;
@@ -891,7 +890,7 @@ int rome_get_tlv_file(char *file_path)
 
             /* Write BD Address */
             if(nvm_ptr->tag_id == TAG_NUM_2){
-                memcpy(nvm_byte_ptr, q->bdaddr, 6);
+                memcpy(nvm_byte_ptr, q.bdaddr, 6);
                 ALOGI("BD Address: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x",
                     *nvm_byte_ptr, *(nvm_byte_ptr+1), *(nvm_byte_ptr+2),
                     *(nvm_byte_ptr+3), *(nvm_byte_ptr+4), *(nvm_byte_ptr+5));
@@ -1331,7 +1330,7 @@ int rome_1_0_nvm_tag_dnld(int fd)
     {
         /* Write BD Address */
         if(cmds[i][TAG_NUM_OFFSET] == TAG_NUM_2){
-            memcpy(&cmds[i][TAG_BDADDR_OFFSET], q->bdaddr, 6);
+            memcpy(&cmds[i][TAG_BDADDR_OFFSET], q.bdaddr, 6);
             ALOGI("BD Address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",
                 cmds[i][TAG_BDADDR_OFFSET ], cmds[i][TAG_BDADDR_OFFSET + 1],
                 cmds[i][TAG_BDADDR_OFFSET + 2], cmds[i][TAG_BDADDR_OFFSET + 3],
@@ -1763,12 +1762,10 @@ end:
    return;
 }
 
-
-/* This function is called with q_lock held and q is non-NULL */
 static int disable_internal_ldo(int fd)
 {
     int ret = 0;
-    if (q->enable_extldo) {
+    if (q.enable_extldo) {
         unsigned char cmd[5] = {0x01, 0x0C, 0xFC, 0x01, 0x32};
         unsigned char rsp[HCI_MAX_EVENT_SIZE];
 
