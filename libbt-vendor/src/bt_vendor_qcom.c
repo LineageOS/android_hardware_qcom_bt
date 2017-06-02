@@ -1304,7 +1304,7 @@ out:
     return ret;
 }
 
-static void ssr_cleanup(int reason)
+static void ssr_cleanup(void)
 {
     int pwr_state = BT_VND_PWR_OFF;
     int ret;
@@ -1324,19 +1324,17 @@ static void ssr_cleanup(int reason)
     if (q->soc_type >= BT_SOC_ROME && q->soc_type < BT_SOC_RESERVED) {
 #ifdef ENABLE_ANT
         /*Indicate to filter by sending special byte */
-        if (reason == CMD_TIMEOUT) {
-            trig_ssr = 0xEE;
-            ret = write (vnd_userial.fd, &trig_ssr, 1);
-            ALOGI("Trig_ssr is being sent to BT socket, ret %d err %s",
-                        ret, strerror(errno));
+        trig_ssr = 0xEE;
+        ret = write (vnd_userial.fd, &trig_ssr, 1);
+        ALOGI("Trig_ssr is being sent to BT socket, ret %d err %s",
+                    ret, strerror(errno));
 
-            if (is_debug_force_special_bytes()) {
-                /*
-                 * Then we should send special byte to crash SOC in
-                 * WCNSS_Filter, so we do not need to power off UART here.
-                 */
-                goto out;
-            }
+        if (is_debug_force_special_bytes()) {
+            /*
+             * Then we should send special byte to crash SOC in
+             * WCNSS_Filter, so we do not need to power off UART here.
+             */
+            goto out;
         }
 
         /* Close both ANT channel */
