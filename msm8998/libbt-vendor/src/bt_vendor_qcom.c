@@ -54,8 +54,6 @@
 
 #define BT_VND_FILTER_START "wc_transport.start_hci"
 
-#define CMD_TIMEOUT  0x22
-
 static void wait_for_patch_download(bool is_ant_req);
 static bool is_debug_force_special_bytes(void);
 int connect_to_local_socket(char* name);
@@ -1275,61 +1273,6 @@ userial_open:
 out:
     ALOGV("--%s", __FUNCTION__);
     return retval;
-}
-
-static void ssr_cleanup(int reason)
-{
-    int pwr_state = BT_VND_PWR_OFF;
-    int ret;
-    unsigned char trig_ssr = 0xEE;
-#ifndef ENABLE_ANT
-    (void)reason;  // unused
-#endif
-
-    ALOGI("++%s", __FUNCTION__);
-
-    if (property_set("wc_transport.patch_dnld_inprog", "null") < 0) {
-        ALOGE("Failed to set property");
-    }
-
-    if (q.soc_type >= BT_SOC_ROME && q.soc_type < BT_SOC_RESERVED) {
-#ifdef ENABLE_ANT
-        /*Indicate to filter by sending special byte */
-        if (reason == CMD_TIMEOUT) {
-            trig_ssr = 0xEE;
-            ret = write (vnd_userial.fd, &trig_ssr, 1);
-            ALOGI("Trig_ssr is being sent to BT socket, ret %d err %s",
-                        ret, strerror(errno));
-
-            if (is_debug_force_special_bytes()) {
-                /*
-                 * Then we should send special byte to crash SOC in
-                 * WCNSS_Filter, so we do not need to power off UART here.
-                 */
-                goto out;
-            }
-        }
-
-        /* Close both ANT channel */
-        op(BT_VND_OP_ANT_USERIAL_CLOSE, NULL);
-#endif
-        /* Close both BT channel */
-        op(BT_VND_OP_USERIAL_CLOSE, NULL);
-
-#ifdef FM_OVER_UART
-        op(BT_VND_OP_FM_USERIAL_CLOSE, NULL);
-#endif
-        /*CTRL OFF twice to make sure hw
-         * turns off*/
-#ifdef ENABLE_ANT
-        op(BT_VND_OP_POWER_CTRL, &pwr_state);
-#endif
-    }
-    /*Generally switching of chip should be enough*/
-    op(BT_VND_OP_POWER_CTRL, &pwr_state);
-
-out:
-    ALOGI("--%s", __FUNCTION__);
 }
 
 /** Closes the interface */
