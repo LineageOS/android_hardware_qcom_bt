@@ -50,8 +50,6 @@
 
 #define BT_VND_FILTER_START "wc_transport.start_hci"
 
-#define CMD_TIMEOUT  0x22
-
 static void wait_for_patch_download(bool is_ant_req);
 static bool is_debug_force_special_bytes(void);
 int connect_to_local_socket(char* name);
@@ -1302,64 +1300,6 @@ out:
     return ret;
 }
 
-static void ssr_cleanup(int reason)
-{
-    int pwr_state = BT_VND_PWR_OFF;
-    int ret;
-    unsigned char trig_ssr = 0xEE;
-
-    ALOGI("++%s", __FUNCTION__);
-
-    pthread_mutex_lock(&q_lock);
-    if (!q) {
-        ALOGE("ssr_cleanup called with NULL context");
-        goto out;
-    }
-    if (property_set("wc_transport.patch_dnld_inprog", "null") < 0) {
-        ALOGE("Failed to set property");
-    }
-
-    if (q->soc_type >= BT_SOC_ROME && q->soc_type < BT_SOC_RESERVED) {
-#ifdef ENABLE_ANT
-        /*Indicate to filter by sending special byte */
-        if (reason == CMD_TIMEOUT) {
-            trig_ssr = 0xEE;
-            ret = write (vnd_userial.fd, &trig_ssr, 1);
-            ALOGI("Trig_ssr is being sent to BT socket, ret %d err %s",
-                        ret, strerror(errno));
-
-            if (is_debug_force_special_bytes()) {
-                /*
-                 * Then we should send special byte to crash SOC in
-                 * WCNSS_Filter, so we do not need to power off UART here.
-                 */
-                goto out;
-            }
-        }
-
-        /* Close both ANT channel */
-        __op(BT_VND_OP_ANT_USERIAL_CLOSE, NULL);
-#endif
-        /* Close both BT channel */
-        __op(BT_VND_OP_USERIAL_CLOSE, NULL);
-
-#ifdef FM_OVER_UART
-        __op(BT_VND_OP_FM_USERIAL_CLOSE, NULL);
-#endif
-        /*CTRL OFF twice to make sure hw
-         * turns off*/
-#ifdef ENABLE_ANT
-        __op(BT_VND_OP_POWER_CTRL, &pwr_state);
-#endif
-    }
-    /*Generally switching of chip should be enough*/
-    __op(BT_VND_OP_POWER_CTRL, &pwr_state);
-
-out:
-    pthread_mutex_unlock(&q_lock);
-    ALOGI("--%s", __FUNCTION__);
-}
-
 /** Closes the interface */
 static void cleanup(void)
 {
@@ -1458,6 +1398,5 @@ const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
     sizeof(bt_vendor_interface_t),
     init,
     op,
-    cleanup,
-    ssr_cleanup
+    cleanup
 };

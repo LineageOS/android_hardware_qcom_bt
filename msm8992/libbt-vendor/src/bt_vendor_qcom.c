@@ -1039,38 +1039,6 @@ static int op(bt_vendor_opcode_t opcode, void *param)
     return retval;
 }
 
-static void ssr_cleanup(void) {
-    int pwr_state=BT_VND_PWR_OFF;
-
-    ALOGI("ssr_cleanup");
-
-    if ((btSocType = get_bt_soc_type()) < 0) {
-        ALOGE("%s: Failed to detect BT SOC Type", __FUNCTION__);
-        return;
-    }
-
-    if (btSocType == BT_SOC_ROME) {
-#ifdef BT_SOC_TYPE_ROME
-#ifdef ENABLE_ANT
-        /*Close both ANT channel*/
-        op(BT_VND_OP_ANT_USERIAL_CLOSE, NULL);
-#endif
-#endif
-        /*Close both ANT channel*/
-        op(BT_VND_OP_USERIAL_CLOSE, NULL);
-        /*CTRL OFF twice to make sure hw
-         * turns off*/
-        op(BT_VND_OP_POWER_CTRL, &pwr_state);
-
-    }
-
-#ifdef BT_SOC_TYPE_ROME
-    /*Generally switching of chip should be enough*/
-    op(BT_VND_OP_POWER_CTRL, &pwr_state);
-#endif
-    bt_vendor_cbacks = NULL;
-}
-
 
 /** Closes the interface */
 static void cleanup( void )
@@ -1088,6 +1056,5 @@ const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
     sizeof(bt_vendor_interface_t),
     init,
     op,
-    cleanup,
-    ssr_cleanup
+    cleanup
 };

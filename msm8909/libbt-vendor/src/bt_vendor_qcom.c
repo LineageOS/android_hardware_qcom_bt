@@ -49,8 +49,6 @@
 #define BT_VND_FILTER_START "wc_transport.start_hci"
 #endif
 
-#define CMD_TIMEOUT  0x22
-
 static void wait_for_patch_download(bool is_ant_req);
 static bool is_debug_force_special_bytes(void);
 
@@ -1065,56 +1063,6 @@ static int op(bt_vendor_opcode_t opcode, void *param)
     return retval;
 }
 
-static void ssr_cleanup(int reason) {
-    int pwr_state=BT_VND_PWR_OFF;
-    int ret;
-    unsigned char trig_ssr = 0xEE;
-    ALOGI("ssr_cleanup");
-    if (property_set("wc_transport.patch_dnld_inprog", "null") < 0) {
-        ALOGE("%s: Failed to set property", __FUNCTION__);
-    }
-
-    if ((btSocType = get_bt_soc_type()) < 0) {
-        ALOGE("%s: Failed to detect BT SOC Type", __FUNCTION__);
-        return -1;
-    }
-
-    if (btSocType == BT_SOC_ROME) {
-#ifdef BT_SOC_TYPE_ROME
-#ifdef ENABLE_ANT
-        //Indicate to filter by sending
-        //special byte
-        if (reason == CMD_TIMEOUT) {
-            trig_ssr = 0xEE;
-            ret = write (vnd_userial.fd, &trig_ssr, 1);
-            ALOGI("Trig_ssr is being sent to BT socket, retval(%d) :errno:  %s", ret, strerror(errno));
-
-            if (is_debug_force_special_bytes()) {
-                //Then we should send special byte to crash SOC in WCNSS_Filter, so we do not
-                //need to power off UART here.
-                return;
-            }
-        }
-
-        /*Close both ANT channel*/
-        op(BT_VND_OP_ANT_USERIAL_CLOSE, NULL);
-#endif
-#endif
-        /*Close both BT channel*/
-        op(BT_VND_OP_USERIAL_CLOSE, NULL);
-        /*CTRL OFF twice to make sure hw
-         * turns off*/
-#ifdef ENABLE_ANT
-        op(BT_VND_OP_POWER_CTRL, &pwr_state);
-#endif
-
-    }
-#ifdef BT_SOC_TYPE_ROME
-    /*Generally switching of chip should be enough*/
-    op(BT_VND_OP_POWER_CTRL, &pwr_state);
-#endif
-}
-
 
 /** Closes the interface */
 static void cleanup( void )
@@ -1172,6 +1120,5 @@ const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
     sizeof(bt_vendor_interface_t),
     init,
     op,
-    cleanup,
-    ssr_cleanup
+    cleanup
 };
