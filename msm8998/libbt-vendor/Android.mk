@@ -63,8 +63,12 @@ endif #WIFI_BT_STATUS_SYNC
 
 LOCAL_SHARED_LIBRARIES := \
         libcutils \
-        liblog \
+        liblog
+
+ifneq ($(TARGET_USES_AOSP),true)
+LOCAL_SHARED_LIBRARIES += \
         libbtnv
+endif
 
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_TAGS := optional
@@ -78,7 +82,9 @@ else
 LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
 endif
 
+ifneq ($(TARGET_USES_AOSP),true)
 LOCAL_CFLAGS += -DBT_NV_SUPPORT
+endif
 
 ifneq ($(BOARD_ANT_WIRELESS_DEVICE),)
 LOCAL_CFLAGS += -DENABLE_ANT
