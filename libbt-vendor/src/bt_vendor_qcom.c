@@ -910,7 +910,7 @@ userial_open:
                                     ALOGV("BD address read from Boot property: %s\n", bd_addr);
                                     tok =  strtok(bd_addr, ":");
                                     while (tok != NULL) {
-                                        ALOGV("bd add [%d]: %d ", i, strtol(tok, NULL, 16));
+                                        ALOGV("bd add [%d]: %ld ", i, strtol(tok, NULL, 16));
                                         if (i>=6) {
                                             ALOGE("bd property of invalid length");
                                             ignore_boot_prop = TRUE;
@@ -918,7 +918,7 @@ userial_open:
                                         }
                                         if (i == 6 && !ignore_boot_prop) {
                                             ALOGV("Valid BD address read from prop");
-                                            memcpy(q->bdaddr, local_bd_addr_from_prop, sizeof(vnd_local_bd_addr));
+                                            memcpy(q->bdaddr, local_bd_addr_from_prop, sizeof(q->bdaddr));
                                             ignore_boot_prop = FALSE;
                                         } else {
                                             ALOGE("There are not enough tokens in BD addr");
@@ -931,7 +931,7 @@ userial_open:
                                     }
                                     if (i == 6 && !ignore_boot_prop) {
                                         ALOGV("Valid BD address read from prop");
-                                        memcpy(vnd_local_bd_addr, local_bd_addr_from_prop, sizeof(vnd_local_bd_addr));
+                                        memcpy(q->bdaddr, local_bd_addr_from_prop, sizeof(q->bdaddr));
                                         ignore_boot_prop = FALSE;
                                     } else {
                                         ALOGE("There are not enough tokens in BD addr");
