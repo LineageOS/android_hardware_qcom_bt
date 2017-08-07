@@ -98,7 +98,9 @@ LOCAL_CFLAGS += -Wno-enum-conversion
 ifneq ($(BOARD_ANT_WIRELESS_DEVICE),)
 LOCAL_CFLAGS += -DENABLE_ANT
 endif
-#LOCAL_CFLAGS += -DREAD_BT_ADDR_FROM_PROP
+ifeq ($(QCOM_BT_READ_ADDR_FROM_PROP),true)
+LOCAL_CFLAGS += -DREAD_BT_ADDR_FROM_PROP
+endif
 
 #include $(LOCAL_PATH)/vnd_buildcfg.mk
 
