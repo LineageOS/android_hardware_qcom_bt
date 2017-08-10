@@ -238,8 +238,8 @@ bool can_perform_action(char action) {
             if ((is_soc_initialized() == true)
                || is_download_progress() || get_bt_soc_type() == BT_SOC_CHEROKEE)
           {
-            value++;
-            ALOGV("%s: on : value is incremented to : %d", __func__, value);
+            //value++;
+            ALOGE("%s: on : value is already 1", __func__);
           }
         }
         else
@@ -1022,6 +1022,8 @@ userial_open:
                                  can reset SOC.
                                  */
                                 property_set("wc_transport.hci_filter_status", "-1");
+                                property_set("wc_transport.start_hci", "false");
+                                bt_powerup(0);
                             } else {
 #ifdef ENABLE_ANT
                                 if (is_ant_req) {
