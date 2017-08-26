@@ -1287,7 +1287,12 @@ static int op(bt_vendor_opcode_t opcode, void *param)
 {
     int ret;
     ALOGV("++%s", __FUNCTION__);
-    pthread_mutex_lock(&q_lock);
+    // these ops are called from the callback into the HIDL layer, when the lock is already held
+    // it should be safe to let these two happen without
+    // but we should split them into an op_unlocked function, probably.
+    bool skip_mutex = (opcode == BT_VND_OP_GET_LPM_IDLE_TIMEOUT) || (opcode == BT_VND_OP_LPM_SET_MODE);
+    if (!skip_mutex)
+        pthread_mutex_lock(&q_lock);
     if (!q) {
         ALOGE("op called with NULL context");
         ret = -BT_STATUS_INVAL;
@@ -1295,7 +1300,8 @@ static int op(bt_vendor_opcode_t opcode, void *param)
     }
     ret = __op(opcode, param);
 out:
-    pthread_mutex_unlock(&q_lock);
+	if (!skip_mutex)
+		pthread_mutex_unlock(&q_lock);
     ALOGV("--%s ret = 0x%x", __FUNCTION__, ret);
     return ret;
 }
