@@ -39,6 +39,9 @@ endif
 
 ifeq ($(BOARD_HAS_QCA_BT_ROME),true)
 LOCAL_CFLAGS += -DBT_SOC_TYPE_ROME
+ifeq($(BOARD_HAS_BT_FIRMWARE_PARTITION),true)
+LOCAL_CFLAGS += -DHAS_BT_FIRMWARE_PARTITION
+endif
 endif
 
 ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
