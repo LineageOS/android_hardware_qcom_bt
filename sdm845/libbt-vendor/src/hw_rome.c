@@ -34,28 +34,27 @@ extern "C" {
 
 #define LOG_TAG "bt_vendor"
 
+#include <sys/socket.h>
+#include <utils/Log.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <time.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <ctype.h>
+#include <cutils/properties.h>
+#include <stdlib.h>
+#include <termios.h>
+#include <string.h>
+#include <stdbool.h>
 #include "bt_hci_bdroid.h"
 #include "bt_vendor_qcom.h"
 #include "hci_uart.h"
 #include "hw_rome.h"
 
-#include <ctype.h>
-#include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <termios.h>
-#include <time.h>
-#include <unistd.h>
-
-#include <cutils/properties.h>
-#include <utils/Log.h>
+#define BT_VERSION_FILEPATH "/data/misc/bluedroid/bt_fw_version.txt"
 
 #ifdef __cplusplus
 }
@@ -156,32 +155,41 @@ int get_vs_hci_event(unsigned char *rsp)
         {
             case EDL_PATCH_VER_RES_EVT:
             case EDL_APP_VER_RES_EVT:
-                productid = (unsigned int)(rsp[PATCH_PROD_ID_OFFSET +3] << 24 |
-                                    rsp[PATCH_PROD_ID_OFFSET+2] << 16 |
-                                    rsp[PATCH_PROD_ID_OFFSET+1] << 8 |
-                                    rsp[PATCH_PROD_ID_OFFSET]  );
-                ALOGI("\t Current Product ID\t\t: 0x%08x", productid);
+                ALOGI("\t Current Product ID\t\t: 0x%08x",
+                    productid = (unsigned int)(rsp[PATCH_PROD_ID_OFFSET +3] << 24 |
+                                        rsp[PATCH_PROD_ID_OFFSET+2] << 16 |
+                                        rsp[PATCH_PROD_ID_OFFSET+1] << 8 |
+                                        rsp[PATCH_PROD_ID_OFFSET]  ));
 
                 /* Patch Version indicates FW patch version */
-                patchversion = (unsigned short)(rsp[PATCH_PATCH_VER_OFFSET + 1] << 8 |
-                                       rsp[PATCH_PATCH_VER_OFFSET] );
-                ALOGI("\t Current Patch Version\t\t: 0x%04x", patchversion);
+                ALOGI("\t Current Patch Version\t\t: 0x%04x",
+                    (patchversion = (unsigned short)(rsp[PATCH_PATCH_VER_OFFSET + 1] << 8 |
+                                            rsp[PATCH_PATCH_VER_OFFSET] )));
 
                 /* ROM Build Version indicates ROM build version like 1.0/1.1/2.0 */
-                buildversion = (int)(rsp[PATCH_ROM_BUILD_VER_OFFSET + 1] << 8 |
-                                       rsp[PATCH_ROM_BUILD_VER_OFFSET] );
-                ALOGI("\t Current ROM Build Version\t: 0x%04x", buildversion);
+                ALOGI("\t Current ROM Build Version\t: 0x%04x", buildversion =
+                    (int)(rsp[PATCH_ROM_BUILD_VER_OFFSET + 1] << 8 |
+                                            rsp[PATCH_ROM_BUILD_VER_OFFSET] ));
 
                 /* In case rome 1.0/1.1, there is no SOC ID version available */
                 if (paramlen - 10)
                 {
-                    soc_id = (unsigned int)(rsp[PATCH_SOC_VER_OFFSET +3] << 24 |
-                                     rsp[PATCH_SOC_VER_OFFSET+2] << 16 |
-                                     rsp[PATCH_SOC_VER_OFFSET+1] << 8 |
-                                     rsp[PATCH_SOC_VER_OFFSET]  );
-                    ALOGI("\t Current SOC Version\t\t: 0x%08x", soc_id);
+                    ALOGI("\t Current SOC Version\t\t: 0x%08x", soc_id =
+                        (unsigned int)(rsp[PATCH_SOC_VER_OFFSET +3] << 24 |
+                                                rsp[PATCH_SOC_VER_OFFSET+2] << 16 |
+                                                rsp[PATCH_SOC_VER_OFFSET+1] << 8 |
+                                                rsp[PATCH_SOC_VER_OFFSET]  ));
                 }
 
+                if (NULL != (btversionfile = fopen(BT_VERSION_FILEPATH, "wb"))) {
+                    fprintf(btversionfile, "Bluetooth Controller Product ID    : 0x%08x\n", productid);
+                    fprintf(btversionfile, "Bluetooth Controller Patch Version : 0x%04x\n", patchversion);
+                    fprintf(btversionfile, "Bluetooth Controller Build Version : 0x%04x\n", buildversion);
+                    fprintf(btversionfile, "Bluetooth Controller SOC Version   : 0x%08x\n", soc_id);
+                    fclose(btversionfile);
+                }else {
+                    ALOGI("Failed to dump SOC version info. Errno:%d", errno);
+                }
                 /* Rome Chipset Version can be decided by Patch version and SOC version,
                 Upper 2 bytes will be used for Patch version and Lower 2 bytes will be
                 used for SOC as combination for BT host driver */
@@ -223,6 +231,12 @@ int get_vs_hci_event(unsigned char *rsp)
                 *(build_label+build_lbl_len) = '\0';
 
                 ALOGI("BT SoC FW SU Build info: %s, %d", build_label, build_lbl_len);
+                if (NULL != (btversionfile = fopen(BT_VERSION_FILEPATH, "a+b"))) {
+                    fprintf(btversionfile, "Bluetooth Contoller SU Build info  : %s\n", build_label);
+                    fclose(btversionfile);
+                } else {
+                    ALOGI("Failed to dump  FW SU build info. Errno:%d", errno);
+                }
             break;
         }
         break;
@@ -803,6 +817,7 @@ error:
     return err;
 }
 
+/* This function is called with q_lock held and q is non-NULL */
 int rome_get_tlv_file(char *file_path)
 {
     FILE * pFile;
@@ -893,7 +908,7 @@ int rome_get_tlv_file(char *file_path)
 
             /* Write BD Address */
             if(nvm_ptr->tag_id == TAG_NUM_2){
-                memcpy(nvm_byte_ptr, q.bdaddr, 6);
+                memcpy(nvm_byte_ptr, q->bdaddr, 6);
                 ALOGI("BD Address: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x",
                     *nvm_byte_ptr, *(nvm_byte_ptr+1), *(nvm_byte_ptr+2),
                     *(nvm_byte_ptr+3), *(nvm_byte_ptr+4), *(nvm_byte_ptr+5));
@@ -1333,7 +1348,7 @@ int rome_1_0_nvm_tag_dnld(int fd)
     {
         /* Write BD Address */
         if(cmds[i][TAG_NUM_OFFSET] == TAG_NUM_2){
-            memcpy(&cmds[i][TAG_BDADDR_OFFSET], q.bdaddr, 6);
+            memcpy(&cmds[i][TAG_BDADDR_OFFSET], q->bdaddr, 6);
             ALOGI("BD Address: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",
                 cmds[i][TAG_BDADDR_OFFSET ], cmds[i][TAG_BDADDR_OFFSET + 1],
                 cmds[i][TAG_BDADDR_OFFSET + 2], cmds[i][TAG_BDADDR_OFFSET + 3],
@@ -1765,10 +1780,12 @@ end:
    return;
 }
 
+
+/* This function is called with q_lock held and q is non-NULL */
 static int disable_internal_ldo(int fd)
 {
     int ret = 0;
-    if (q.enable_extldo) {
+    if (q->enable_extldo) {
         unsigned char cmd[5] = {0x01, 0x0C, 0xFC, 0x01, 0x32};
         unsigned char rsp[HCI_MAX_EVENT_SIZE];
 
