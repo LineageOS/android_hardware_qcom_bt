@@ -1896,6 +1896,12 @@ int rome_soc_init(int fd, char *bdaddr)
             fw_su_info = ROME_3_1_FW_SU;
             fw_su_offset = ROME_3_1_FW_SW_OFFSET;
             goto download;
+        case ROME_VER_3_1:
+            rampatch_file_path = ROME_RAMPATCH_TLV_3_0_1_PATH;
+            nvm_file_path = ROME_NVM_TLV_3_0_1_PATH;
+            fw_su_info = ROME_3_1_FW_SU;
+            fw_su_offset = ROME_3_1_FW_SW_OFFSET;
+            goto download;
         case ROME_VER_3_2:
             rampatch_file_path = ROME_RAMPATCH_TLV_3_0_2_PATH;
             nvm_file_path = ROME_NVM_TLV_3_0_2_PATH;

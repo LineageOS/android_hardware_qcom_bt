@@ -160,6 +160,8 @@
 #define ROME_NVM_TLV_2_0_1_PATH           "/system/etc/firmware/nvm_tlv_2.1.bin"
 #define ROME_RAMPATCH_TLV_3_0_0_PATH      "/bt_firmware/image/btfw30.tlv"
 #define ROME_NVM_TLV_3_0_0_PATH           "/bt_firmware/image/btnv30.bin"
+#define ROME_RAMPATCH_TLV_3_0_1_PATH      "/system/etc/firmware/rampatch_tlv_tf_1.1.tlv"
+#define ROME_NVM_TLV_3_0_1_PATH           "/system/etc/firmware/nvm_tlv_tf_1.1.bin"
 #define ROME_RAMPATCH_TLV_3_0_2_PATH      "/bt_firmware/image/btfw32.tlv"
 #define ROME_NVM_TLV_3_0_2_PATH           "/bt_firmware/image/btnv32.bin"
 
@@ -268,6 +270,7 @@ enum{
     ROME_SOC_ID_00 = 0x00000000,
     ROME_SOC_ID_11 = 0x00000011,
     ROME_SOC_ID_22 = 0x00000022,
+    ROME_SOC_ID_23 = 0x00000023,
     ROME_SOC_ID_44 = 0x00000044
 };
 
@@ -278,6 +281,7 @@ enum{
     ROME_VER_1_3 = ((ROME_PATCH_VER_0200 << 16 ) | ROME_SOC_ID_00 ),
     ROME_VER_2_1 = ((ROME_PATCH_VER_0200 << 16 ) | ROME_SOC_ID_11 ),
     ROME_VER_3_0 = ((ROME_PATCH_VER_0300 << 16 ) | ROME_SOC_ID_22 ),
+    ROME_VER_3_1 = ((ROME_PATCH_VER_0302 << 16 ) | ROME_SOC_ID_23 ),
     ROME_VER_3_2 = ((ROME_PATCH_VER_0302 << 16 ) | ROME_SOC_ID_44 )
 };
 
