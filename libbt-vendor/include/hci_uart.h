@@ -23,7 +23,7 @@
 
 /* Variables to identify the platform */
 /*BT HS UART TTY DEVICE */
-#define BT_HS_UART_DEVICE "/dev/ttyHS0"
+#define BT_HS_UART_DEVICE "/dev/ttySAC0"
 
 /**** baud rates ****/
 #define USERIAL_BAUD_300        0
@@ -90,6 +90,16 @@
 #define USERIAL_IOCTL_BT_WAKE_GET_ST   0x8005
 #endif
 #endif // (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
+
+#ifndef TIOCPMGET
+#define TIOCPMGET 0x5441  /* PM get */
+#endif
+#ifndef TIOCPMPUT
+#define TIOCPMPUT 0x5442  /* PM put */
+#endif
+#ifndef TIOCPMACT
+#define TIOCPMACT   0x5443  /* PM is active */
+#endif
 
 /* UART CLOCK IOCTLS*/
 /* UART CLOCK IOCTLS*/
