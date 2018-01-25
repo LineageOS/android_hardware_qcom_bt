@@ -35,7 +35,7 @@ extern "C" {
 #define LOG_TAG "bt_vendor"
 
 #include <sys/socket.h>
-#include <utils/Log.h>
+#include <log/log.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
@@ -50,6 +50,7 @@ extern "C" {
 #include <termios.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include "bt_hci_bdroid.h"
 #include "bt_vendor_qcom.h"
