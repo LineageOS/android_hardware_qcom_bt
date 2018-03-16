@@ -46,6 +46,30 @@
       "revId": "ddaccd2176683b6de272e7d2718557dbe9b9fe1b",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c0bfea2_20f5845a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10258
+      },
+      "writtenOn": "2018-03-16T08:43:18Z",
+      "side": 1,
+      "message": "Original commit: https://github.com/LineageOS/android_hardware_qcom_bt/commit/644720a63278f9bf1d4497743bf4ab3fb5a4beca\nI guess they wrote this because it\u0027s used by wahoo",
+      "parentUuid": "307b7ae5_45cfd031",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 40
+      },
+      "revId": "ddaccd2176683b6de272e7d2718557dbe9b9fe1b",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }
