@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d2fc8e9_186ddef5",
+        "filename": "libbt-vendor/include/hw_ar3k.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2018-05-05T10:20:51Z",
+      "side": 1,
+      "message": "This should be /vendor/firmware",
+      "range": {
+        "startLine": 51,
+        "startChar": 17,
+        "endLine": 51,
+        "endChar": 37
+      },
+      "revId": "213395bb6ef5ab7944651174df6fdcf59ba6b9bf",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff7688af_d51cd5d5",
+        "filename": "libbt-vendor/include/hw_rome.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2018-05-05T10:20:51Z",
+      "side": 1,
+      "message": "Same here and for all the rest.",
+      "range": {
+        "startLine": 154,
+        "startChar": 43,
+        "endLine": 154,
+        "endChar": 63
+      },
+      "revId": "213395bb6ef5ab7944651174df6fdcf59ba6b9bf",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
