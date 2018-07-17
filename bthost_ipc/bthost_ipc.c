@@ -286,11 +286,12 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         sbc_codec.bitrate |= (*p_cfg++ << 8);
         sbc_codec.bitrate |= (*p_cfg++ << 16);
         sbc_codec.bitrate |= (*p_cfg++ << 24);
+        sbc_codec.bits_per_sample = *(uint32_t *)p_cfg;
         *codec_type = AUDIO_FORMAT_SBC;
 
         if(sample_freq) *sample_freq = sbc_codec.sampling_rate;
 
-        ALOGW("SBC: Done copying full codec config");
+        ALOGW("SBC: Done copying full codec config bits_per_sample : %d", sbc_codec.bits_per_sample);
         return ((void *)(&sbc_codec));
     } else if (codec_cfg[CODEC_OFFSET] == CODEC_TYPE_AAC)
     {
@@ -385,11 +386,11 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
 
         aac_bit_rate |= 0x000000FF & (((uint32_t)byte));
         aac_codec.bitrate = aac_bit_rate;
-
+        aac_codec.bits_per_sample = *(uint32_t *)p_cfg;
         *codec_type = AUDIO_FORMAT_AAC;
 
         if(sample_freq) *sample_freq = aac_codec.sampling_rate;
-        ALOGW("AAC: Done copying full codec config");
+        ALOGW("AAC: Done copying full codec config bits_per_sample : %d", aac_codec.bits_per_sample);
         return ((void *)(&aac_codec));
     }
     else if (codec_cfg[CODEC_OFFSET] == NON_A2DP_CODEC_TYPE)
@@ -571,9 +572,9 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         aptx_codec.bitrate |= (*p_cfg++ << 8);
         aptx_codec.bitrate |= (*p_cfg++ << 16);
         aptx_codec.bitrate |= (*p_cfg++ << 24);
-
+        aptx_codec.bits_per_sample = *(uint32_t *)p_cfg;
         if(sample_freq) *sample_freq = aptx_codec.sampling_rate;
-        ALOGW("APTx: Done copying full codec config");
+        ALOGW("APTx: Done copying full codec config bits_per_sample : %d", aptx_codec.bits_per_sample);
         if (*codec_type == ENC_CODEC_TYPE_APTX_DUAL_MONO)
         {
             memset(&aptx_tws_codec, 0, sizeof(audio_aptx_tws_encoder_config_t));
@@ -1629,8 +1630,8 @@ void ldac_codec_parser(uint8_t *codec_cfg)
     ldac_codec.bitrate |= (*p_cfg++ << 24);
 
     ldac_codec.is_abr_enabled = (ldac_codec.bitrate == 0);
-
-    ALOGW("Create Lookup for %d with ABR %d", ldac_codec.sampling_rate, ldac_codec.is_abr_enabled);
+    ldac_codec.bits_per_sample = *(uint32_t *)p_cfg;
+    ALOGW("Create Lookup for %d with ABR %d, bits_per_sample %d", ldac_codec.sampling_rate, ldac_codec.is_abr_enabled, ldac_codec.bits_per_sample);
     if (ldac_codec.sampling_rate == 44100 ||
             ldac_codec.sampling_rate == 88200) {
         int num_of_level_entries =
