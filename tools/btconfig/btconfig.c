@@ -6795,7 +6795,7 @@ void disable_soc_logging(int fd)
 {
     int iRet;
     UCHAR resultBuf[MAX_EVENT_SIZE];
-    if (!strcasecmp(soc_type, "smd")){
+    if (!strcasecmp(soc_type, "pronto")){
             UCHAR buf[5] = {(unsigned char)0x10, (unsigned char)0x02,( unsigned char)0x0,(unsigned char) 0x0,( unsigned char)0x01 };
             iRet = hci_send_cmd( fd, HCI_VENDOR_CMD_OGF, 0x17, 5, buf);
         }
@@ -6833,8 +6833,7 @@ int main(int argc, char *argv[])
     }
 
 #ifdef ANDROID
-    property_get("ro.vendor.qti.bt.hci_transport", prop, NULL);
-    property_get("vendor.qti.bluetooth.soc", soc_type, NULL);
+    property_get("vendor.qcom.bluetooth.soc", soc_type, "pronto");
 #endif
 
     if((!strcasecmp(soc_type, "rome")) || (!strcasecmp(soc_type, "cherokee")))
@@ -6851,7 +6850,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    if (!strcasecmp(prop, "smd")) {
+    if (!strcasecmp(soc_type, "pronto")) {
         printf("SOC is WCN\n");
 
         fd = wcn_init_smd(argv[optind]);

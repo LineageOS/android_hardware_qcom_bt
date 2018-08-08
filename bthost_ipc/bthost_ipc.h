@@ -124,6 +124,7 @@ codec specific definitions
 */
 #define AUDIO_CODEC_TYPE_CELT         603979776u // 0x24000000UL
 #define ENC_CODEC_TYPE_APTX_DUAL_MONO 570425344u // 0x22000000UL
+#define ENC_CODEC_TYPE_APTX_ADAPTIVE 620756992u // 0x25000000UL
 #define CODEC_TYPE_SBC 0x00
 #define CODEC_TYPE_AAC 0x02
 #define CODEC_TYPE_CELT 0xEF
@@ -139,6 +140,9 @@ codec specific definitions
 #ifndef VENDOR_APTX_HD
 #define VENDOR_APTX_HD 0xD7
 #endif
+#ifndef VENDOR_APTX_ADAPTIVE
+#define VENDOR_APTX_ADAPTIVE 0xD7
+#endif
 #ifndef VENDOR_APTX_LL
 #define VENDOR_APTX_LL 0x0A
 #endif
@@ -147,6 +151,9 @@ codec specific definitions
 #endif
 #ifndef APTX_HD_CODEC_ID
 #define APTX_HD_CODEC_ID 0x24
+#endif
+#ifndef APTX_ADAPTIVE_CODEC_ID
+#define APTX_ADAPTIVE_CODEC_ID 0xAD
 #endif
 #ifndef APTX_TWS_CODEC_ID
 #define APTX_TWS_CODEC_ID 0x25
@@ -191,6 +198,19 @@ codec specific definitions
 #define A2D_APTX_CHAN_STEREO     0x02
 #define A2D_APTX_CHAN_MONO       0x01
 #define A2D_APTX_TWS_CHAN_MODE   0x08
+
+/* APTX Adaptive bitmask helper */
+#define A2D_APTX_ADAPTIVE_SAMP_FREQ_MASK           (0xF8)
+#define A2D_APTX_ADAPTIVE_CHAN_MASK                (0x0F)
+#define A2DP_APTX_ADAPTIVE_SAMPLERATE_44100        (0x08)
+#define A2DP_APTX_ADAPTIVE_SAMPLERATE_48000        (0x10)
+#define A2DP_APTX_ADAPTIVE_SAMPLERATE_88000        (0x20)
+#define A2DP_APTX_ADAPTIVE_SAMPLERATE_192000       (0x40)
+#define A2DP_APTX_ADAPTIVE_CHANNELS_MONO          (0x01)
+#define A2DP_APTX_ADAPTIVE_CHANNELS_STEREO        (0x02)
+#define A2DP_APTX_ADAPTIVE_CHANNELS_TWS_STEREO    (0x04)
+#define A2DP_APTX_ADAPTIVE_CHANNELS_JOINT_STEREO  (0x08)
+#define A2DP_APTX_ADAPTIVE_CHANNELS_TWS_MONO      (0x10)
 
 
 /* LDAC bitmask helper */
@@ -270,6 +290,29 @@ typedef struct {
     uint8_t  channels;
     uint32_t bitrate;
 } audio_aptx_encoder_config_t;
+
+/* Information about BT APTX Adaptive encoder
+ * configuration. This data is used between audio HAL
+ * module and BT IPC library to configure DSP encoder
+ */
+
+typedef struct {
+    uint8_t sampling_rate;
+    uint8_t  channel_mode;
+    uint16_t mtu;
+    uint8_t min_sink_buffering_LL;
+    uint8_t max_sink_buffering_LL;
+    uint8_t min_sink_buffering_HQ;
+    uint8_t max_sink_buffering_HQ;
+    uint8_t min_sink_buffering_TWS;
+    uint8_t max_sink_buffering_TWS;
+    uint8_t TTP_LL_low;
+    uint8_t TTP_LL_high;
+    uint8_t TTP_HQ_low;
+    uint8_t TTP_HQ_high;
+    uint8_t TTP_TWS_low;
+    uint8_t TTP_TWS_high;
+} audio_aptx_adaptive_encoder_config_t;
 
 struct bit_rate_level_map_t {
     uint32_t link_quality_level;
