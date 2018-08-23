@@ -503,6 +503,13 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
             else
                 ALOGW("%s: codec config length error: %d", __func__, len);
 
+            aptx_adaptive_codec.mtu = *(uint16_t *)p_cfg;
+            p_cfg += 6;
+            aptx_adaptive_codec.bits_per_sample = *(uint32_t *)p_cfg;
+
+            ALOGW("%s: ## aptXAdaptive ## MTU =  %d", __func__, aptx_adaptive_codec.mtu);
+            ALOGW("%s: ## aptXAdaptive ## Bits Per Sample =  %d", __func__, aptx_adaptive_codec.bits_per_sample);
+
             return ((void *)&aptx_adaptive_codec);
         }
 
@@ -964,7 +971,14 @@ void bt_stack_on_check_a2dp_ready(tA2DP_CTRL_ACK status)
 
 void bt_stack_on_get_sink_latency(uint16_t latency)
 {
-    ALOGW("bt_stack_on_get_sink_latency");
+    if(update_initial_sink_latency == false)
+    {
+        ALOGW("bt_stack_on_get_sink_latency: Async Latency Update");
+        audio_stream.sink_latency = latency;
+        return;
+    }
+
+    ALOGW("bt_stack_on_get_sink_latency: %d", latency);
     pthread_mutex_lock(&audio_stream.ack_lock);
     audio_stream.sink_latency = latency;
     resp_received = true;
