@@ -886,6 +886,7 @@ void Audio_DumpStats(tAudioStat *AudioStats)
 static int ReadAudioStats(int uart_fd){
 
     tBtHostInterest HostInt;
+    memset((void*)&HostInt, 0, sizeof(tBtHostInterest));
     tAudioStat Stats;
 
     ReadHostInterest(uart_fd, &HostInt);
@@ -964,6 +965,7 @@ void BRM_DumpStats(tBRM_Stats *Stats)
 
 static int ReadGlobalDMAStats(int uart_fd){
     tBtHostInterest HostInt;
+    memset((void*)&HostInt, 0, sizeof(tBtHostInterest));
     tBRM_Stats  Stats;
 
     ReadHostInterest(uart_fd, &HostInt);
@@ -978,6 +980,7 @@ static int ReadGlobalDMAStats(int uart_fd){
 
 static int ResetGlobalDMAStats(int uart_fd){
     tBtHostInterest HostInt;
+    memset((void*)&HostInt, 0, sizeof(tBtHostInterest));
     tBRM_Stats  Stats;
 
     ReadHostInterest(uart_fd, &HostInt);
@@ -994,6 +997,7 @@ static int ResetGlobalDMAStats(int uart_fd){
 
 static int ReadTpcTable(int uart_fd){
     tBtHostInterest HostInt;
+    memset((void*)&HostInt, 0, sizeof(tBtHostInterest));
     tPsSysCfgTransmitPowerControlTable  TpcTable;
     int i;
 
@@ -2313,7 +2317,7 @@ static void cmd_mb(int uart_fd, int argc, char **argv){
         for(i = 0; i <= fdmax; i++) {
             if(FD_ISSET(i, &read_fds)) {
                 if (i==0) {// input
-                    scanf("%s",buf);
+                    fgets((char*)buf, sizeof(buf), stdin);
                     FieldAlias = (char)buf[0];
                     FieldNum = CheckField(MasterBlaster, &FieldAlias);
                     if (FieldNum == INVALID_MASTERBLASTER_FIELD) {
@@ -3420,6 +3424,7 @@ static int read_otpRaw(int uart_fd, int address, int length, UCHAR *data)
 static int SU_GetId(int uart_fd, char *pStr, tSU_RevInfo *pRetRevInfo)
 {
     tSU_RevInfo RevInfo;
+    memset((void*)&RevInfo, 0, sizeof(tSU_RevInfo));
     UCHAR buf[MAX_EVENT_SIZE];
 
     RevInfo.RomVersion = 0x99999999;
@@ -3544,11 +3549,12 @@ static void cmd_otp(int uart_fd, int argc, char **argv)
         }
     } else if (!strcmp(argv[1], "cpw")) {
         UINT32 cin_value = 0, cout_value = 0;
-        char tempStr[8];
+        char tempStr[8], temp[5] = {'\0'};
 
         if (argc < 3) {
             printf("\n Enter cin_value : ");
-            scanf("%d", &cin_value);
+            fgets((char *)temp, 5, stdin);
+            cin_value = (UINT32)strtoul(temp, NULL, 16);
         } else
             cin_value = GetUInt(&argv[2], 0);
         if (cin_value > 128) {
@@ -3557,7 +3563,8 @@ static void cmd_otp(int uart_fd, int argc, char **argv)
         }
         if (argc < 4) {
             printf("\n Enter cout_value : ");
-            scanf("%d", &cout_value);
+            fgets((char *)temp, 5, stdin);
+            cout_value = (UINT32)strtoul(temp, NULL, 16);
         } else
             cout_value = GetUInt(&argv[3], 0);
         if (cout_value > 128) {
@@ -3590,11 +3597,12 @@ static void cmd_otp(int uart_fd, int argc, char **argv)
         }
         printf("Done\n");
     } else if (!strcmp(argv[1], "hid")) {
-        char tempStr[8];
+        char tempStr[8], temp[5] = {'\0'};
         UINT32 value = 0;
         if (argc < 3 || !*argv[2]) {
             printf("\n Enter HID value(0|1) : ");
-            scanf("%d", &value);
+            fgets((char *)temp, 5, stdin);
+            value = (UINT32)strtoul(temp, NULL, 16);
         } else
             value = GetUInt(&argv[2], 0);
         if (value != 0 && value != 1) {
@@ -6824,7 +6832,7 @@ int main(int argc, char *argv[])
                 usage();
                 exit(0);
             case 's':
-                strcpy(soc_type, optarg);
+                strlcpy(soc_type, optarg, sizeof(soc_type));
                 continue;
             case 'i':
                 nopatch = false;
@@ -6882,7 +6890,7 @@ int main(int argc, char *argv[])
         }
 #endif
     } else {
-        strcpy(soc_type, "300x");
+        strlcpy(soc_type, "300x", sizeof(soc_type));
         printf("SOC is AR300x\n");
 
         //btconfig [options] <tty> <speed> <command> [command parameters]
@@ -7165,7 +7173,9 @@ int SetMasterBlasterTxFreq (tBRM_Control_packet *MasterBlaster, tMasterBlasterOp
 {
     //char Buffer[20];
     tMasterBlasterOption NewValue;
+    memset((void *)&NewValue, 0, sizeof(tMasterBlasterOption));
     int LoopCount = 4;
+    char temp[5] = {'\0'};
     int Value = (int)MasterBlaster->testCtrl.TxFreq;
     int MaxFreq = LEMode ? MB_MAX_FREQUENCY_LE : MB_MAX_FREQUENCY;
     int MinFreq = LEMode ? MB_MIN_FREQUENCY_LE : MB_MIN_FREQUENCY;
@@ -7174,8 +7184,8 @@ int SetMasterBlasterTxFreq (tBRM_Control_packet *MasterBlaster, tMasterBlasterOp
     while (--LoopCount > 0)
     {
         printf ("\n   Enter Tx frequency (%d..%d): ", MinFreq, MaxFreq);
-        scanf("%d",&NewValue.Value);
-        //    fgets(NewValue,3,stdin);
+        fgets((char *)temp, 5, stdin);
+        NewValue.Value = (int)strtol(temp, NULL, 16);
         if (MinMaxOption (&Value, &NewValue, MinFreq, MaxFreq))
         {
             MasterBlaster->testCtrl.TxFreq = (UCHAR)Value;
@@ -7194,7 +7204,9 @@ int SetMasterBlasterTxFreq (tBRM_Control_packet *MasterBlaster, tMasterBlasterOp
 int SetMasterBlasterRxFreq (tBRM_Control_packet *MasterBlaster, tMasterBlasterOption *Option)
 {
     tMasterBlasterOption NewValue;
+    memset((void *)&NewValue, 0, sizeof(tMasterBlasterOption));
     int LoopCount = 4;
+    char temp[5] = {'\0'};
     int Value = (int)MasterBlaster->testCtrl.RxFreq;
     int MaxFreq = LEMode ? MB_MAX_FREQUENCY_LE : MB_MAX_FREQUENCY;
     int MinFreq = LEMode ? MB_MIN_FREQUENCY_LE : MB_MIN_FREQUENCY;
@@ -7203,7 +7215,8 @@ int SetMasterBlasterRxFreq (tBRM_Control_packet *MasterBlaster, tMasterBlasterOp
     while (--LoopCount > 0)
     {
         printf ("\n   Enter Rx frequency (%d..%d): ", MinFreq, MaxFreq);
-        scanf("%d",&NewValue.Value);
+        fgets((char *)temp, 5, stdin);
+        NewValue.Value = (int)strtol(temp, NULL, 16);
         if (MinMaxOption (&Value, &NewValue, MinFreq, MaxFreq))
         {
             MasterBlaster->testCtrl.RxFreq = (UCHAR)Value;
@@ -7243,7 +7256,9 @@ int SetMasterBlasterPacketType (tBRM_Control_packet *MasterBlaster, tMasterBlast
 int SetMasterBlasterDataLen (tBRM_Control_packet *MasterBlaster, tMasterBlasterOption *Option)
 {
     tMasterBlasterOption NewValue;
+    memset((void *)&NewValue, 0, sizeof(tMasterBlasterOption));
     int LoopCount = 4;
+    char temp[5] = {'\0'};
     int MaxLen = LEMode ? MB_MAX_DATALEN_LE : MB_MAX_DATALEN;
     int MinLen = LEMode ? MB_MIN_DATALEN_LE : MB_MIN_DATALEN;
 
@@ -7251,7 +7266,8 @@ int SetMasterBlasterDataLen (tBRM_Control_packet *MasterBlaster, tMasterBlasterO
     while (--LoopCount > 0)
     {
         printf ("\n   Enter data length (%d..%d): ", MinLen, MaxLen);
-        scanf("%d",&NewValue.Value);
+        fgets((char *)temp, 5, stdin);
+        NewValue.Value = (int)strtol(temp, NULL, 16);
         if (MinMaxOption (&MasterBlaster->testCtrl.DataLen, &NewValue, MinLen, MaxLen))
         {
             return TRUE;
@@ -7298,12 +7314,11 @@ int SetMasterBlasterPower (tBRM_Control_packet *MasterBlaster, tMasterBlasterOpt
 
 int SetMasterBlasterBdAddr (tBRM_Control_packet *MasterBlaster, tMasterBlasterOption *Option)
 {
-    char Buffer[20];
+    char Buffer[20] = {'\0'};
     bdaddr_t bdaddr;
     UNUSED(Option);
     printf ("\n Enter BdAddr: ");
-    //   gets(Buffer);
-    scanf("%s",Buffer);
+    fgets(Buffer, sizeof(Buffer), stdin);
     str2ba(Buffer,&bdaddr);
     memcpy(MasterBlaster->bdaddr,bdaddr.b,6);
     return TRUE;
