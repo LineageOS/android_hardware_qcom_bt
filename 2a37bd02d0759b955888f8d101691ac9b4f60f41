@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfa0a899_e308046c",
+        "filename": "libbt-vendor/src/bt_vendor_persist.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2018-09-03T19:32:44Z",
+      "side": 1,
+      "message": "is this still the case?",
+      "range": {
+        "startLine": 100,
+        "startChar": 93,
+        "endLine": 100,
+        "endChar": 96
+      },
+      "revId": "2a37bd02d0759b955888f8d101691ac9b4f60f41",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": true
+    }
+  ]
+}
