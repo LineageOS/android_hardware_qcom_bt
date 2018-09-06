@@ -458,9 +458,9 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                 case A2DP_APTX_ADAPTIVE_CHANNELS_MONO:
                      aptx_adaptive_codec.channel_mode = 1;
                      break;
-                /*case A2DP_APTX_ADAPTIVE_CHANNELS_STEREO:
+                case A2DP_APTX_ADAPTIVE_CHANNELS_TWS_MONO:
                      aptx_adaptive_codec.channel_mode = 2;
-                     break;*/
+                     break;
                 case A2DP_APTX_ADAPTIVE_CHANNELS_JOINT_STEREO:
                      aptx_adaptive_codec.channel_mode = 0;
                      break;
@@ -468,7 +468,7 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                      aptx_adaptive_codec.channel_mode = 4;
                      break;
                 default:
-                     ALOGE("Unknown sampling rate");
+                     ALOGE("Unknown channel id");
             }
             len--;
 
@@ -506,9 +506,12 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
             aptx_adaptive_codec.mtu = *(uint16_t *)p_cfg;
             p_cfg += 6;
             aptx_adaptive_codec.bits_per_sample = *(uint32_t *)p_cfg;
+            p_cfg += 4;
+            aptx_adaptive_codec.aptx_mode= *(uint16_t *)p_cfg;
 
             ALOGW("%s: ## aptXAdaptive ## MTU =  %d", __func__, aptx_adaptive_codec.mtu);
             ALOGW("%s: ## aptXAdaptive ## Bits Per Sample =  %d", __func__, aptx_adaptive_codec.bits_per_sample);
+            ALOGW("%s: ## aptXAdaptive ## Mode =  %d", __func__, aptx_adaptive_codec.aptx_mode);
 
             return ((void *)&aptx_adaptive_codec);
         }
