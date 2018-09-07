@@ -99,6 +99,9 @@ endif
 ifeq ($(QCOM_BT_READ_ADDR_FROM_PROP),true)
 LOCAL_CFLAGS += -DREAD_BT_ADDR_FROM_PROP
 endif
+ifeq ($(QCOM_BT_USES_OLD_WCNSS_FILTER),true)
+LOCAL_CFLAGS += -DUSES_OLD_WCNSS_FILTER
+endif
 
 #include $(LOCAL_PATH)/vnd_buildcfg.mk
 
