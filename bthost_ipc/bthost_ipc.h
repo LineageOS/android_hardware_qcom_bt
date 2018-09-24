@@ -99,7 +99,7 @@ typedef enum {
     A2DP_CTRL_GET_CONNECTION_STATUS,
 } tA2DP_CTRL_EXT_CMD;
 
-#define  MAX_CODEC_CFG_SIZE  30
+#define  MAX_CODEC_CFG_SIZE  34
 struct a2dp_config {
     uint32_t                rate;
     uint32_t                channel_flags;
@@ -201,7 +201,7 @@ codec specific definitions
 
 /* APTX Adaptive bitmask helper */
 #define A2D_APTX_ADAPTIVE_SAMP_FREQ_MASK           (0xF8)
-#define A2D_APTX_ADAPTIVE_CHAN_MASK                (0x0F)
+#define A2D_APTX_ADAPTIVE_CHAN_MASK                (0x1F)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_44100        (0x08)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_48000        (0x10)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_88000        (0x20)
@@ -314,6 +314,8 @@ typedef struct {
     uint8_t TTP_HQ_high;
     uint8_t TTP_TWS_low;
     uint8_t TTP_TWS_high;
+    uint32_t bits_per_sample;
+    uint16_t aptx_mode;
 } audio_aptx_adaptive_encoder_config_t;
 
 struct bit_rate_level_map_t {

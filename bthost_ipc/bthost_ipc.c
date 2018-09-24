@@ -74,10 +74,10 @@ static int bt_split_a2dp_enabled = 0;
 **  Constants & Macros
 ******************************************************************************/
 /* Below two values adds up to 8 sec retry to address IOT issues*/
-#define STREAM_START_MAX_RETRY_COUNT 10
-#define STREAM_START_MAX_RETRY_LOOPER 8
+#define STREAM_START_MAX_RETRY_COUNT 5
+#define STREAM_START_MAX_RETRY_LOOPER 6
 #define CTRL_CHAN_RETRY_COUNT 3
-#define CHECK_A2DP_READY_MAX_COUNT 20
+#define CHECK_A2DP_READY_MAX_COUNT 5
 
 #define CASE_RETURN_STR(const) case const: return #const;
 
@@ -458,9 +458,9 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                 case A2DP_APTX_ADAPTIVE_CHANNELS_MONO:
                      aptx_adaptive_codec.channel_mode = 1;
                      break;
-                /*case A2DP_APTX_ADAPTIVE_CHANNELS_STEREO:
+                case A2DP_APTX_ADAPTIVE_CHANNELS_TWS_MONO:
                      aptx_adaptive_codec.channel_mode = 2;
-                     break;*/
+                     break;
                 case A2DP_APTX_ADAPTIVE_CHANNELS_JOINT_STEREO:
                      aptx_adaptive_codec.channel_mode = 0;
                      break;
@@ -468,7 +468,7 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                      aptx_adaptive_codec.channel_mode = 4;
                      break;
                 default:
-                     ALOGE("Unknown sampling rate");
+                     ALOGE("Unknown channel id");
             }
             len--;
 
@@ -502,6 +502,16 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                 ALOGW("%s: codec config copied", __func__);
             else
                 ALOGW("%s: codec config length error: %d", __func__, len);
+
+            aptx_adaptive_codec.mtu = *(uint16_t *)p_cfg;
+            p_cfg += 6;
+            aptx_adaptive_codec.bits_per_sample = *(uint32_t *)p_cfg;
+            p_cfg += 4;
+            aptx_adaptive_codec.aptx_mode= *(uint16_t *)p_cfg;
+
+            ALOGW("%s: ## aptXAdaptive ## MTU =  %d", __func__, aptx_adaptive_codec.mtu);
+            ALOGW("%s: ## aptXAdaptive ## Bits Per Sample =  %d", __func__, aptx_adaptive_codec.bits_per_sample);
+            ALOGW("%s: ## aptXAdaptive ## Mode =  %d", __func__, aptx_adaptive_codec.aptx_mode);
 
             return ((void *)&aptx_adaptive_codec);
         }
@@ -964,7 +974,14 @@ void bt_stack_on_check_a2dp_ready(tA2DP_CTRL_ACK status)
 
 void bt_stack_on_get_sink_latency(uint16_t latency)
 {
-    ALOGW("bt_stack_on_get_sink_latency");
+    if(update_initial_sink_latency == false)
+    {
+        ALOGW("bt_stack_on_get_sink_latency: Async Latency Update");
+        audio_stream.sink_latency = latency;
+        return;
+    }
+
+    ALOGW("bt_stack_on_get_sink_latency: %d", latency);
     pthread_mutex_lock(&audio_stream.ack_lock);
     audio_stream.sink_latency = latency;
     resp_received = true;
