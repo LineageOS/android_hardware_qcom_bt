@@ -99,7 +99,7 @@ typedef enum {
     A2DP_CTRL_GET_CONNECTION_STATUS,
 } tA2DP_CTRL_EXT_CMD;
 
-#define  MAX_CODEC_CFG_SIZE  34
+#define  MAX_CODEC_CFG_SIZE  64
 struct a2dp_config {
     uint32_t                rate;
     uint32_t                channel_flags;
@@ -154,6 +154,9 @@ codec specific definitions
 #endif
 #ifndef APTX_ADAPTIVE_CODEC_ID
 #define APTX_ADAPTIVE_CODEC_ID 0xAD
+#endif
+#ifndef APTX_ADAPTIVE_RESERVED_BITS
+#define APTX_ADAPTIVE_RESERVED_BITS 23
 #endif
 #ifndef APTX_TWS_CODEC_ID
 #define APTX_TWS_CODEC_ID 0x25
