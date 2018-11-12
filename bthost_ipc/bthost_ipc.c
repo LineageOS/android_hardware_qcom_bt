@@ -489,6 +489,8 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
 
             p_cfg += 3; // ignoring eoc bits
             len -= 3;
+            p_cfg += APTX_ADAPTIVE_RESERVED_BITS;
+            len -= APTX_ADAPTIVE_RESERVED_BITS;
             ALOGW("%s: ## aptXAdaptive ## sampleRate 0x%x", __func__, aptx_adaptive_codec.sampling_rate);
             ALOGW("%s: ## aptXAdaptive ## channelMode 0x%x", __func__, aptx_adaptive_codec.channel_mode);
             ALOGW("%s: ## aptXAdaptive ## ttp_ll_0 0x%x", __func__, aptx_adaptive_codec.TTP_LL_low);
