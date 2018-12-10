@@ -6844,7 +6844,8 @@ int main(int argc, char *argv[])
     property_get("vendor.qcom.bluetooth.soc", soc_type, "pronto");
 #endif
 
-    if((!strcasecmp(soc_type, "rome")) || (!strcasecmp(soc_type, "cherokee")))
+    if((!strcasecmp(soc_type, "rome")) || (!strcasecmp(soc_type, "cherokee"))
+                ||(!strcasecmp(soc_type, "hastings")))
         is_qca_transport_uart = true;
 
     if(is_qca_transport_uart)  min_para = 1;
