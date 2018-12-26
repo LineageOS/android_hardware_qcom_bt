@@ -74,10 +74,10 @@ static int bt_split_a2dp_enabled = 0;
 **  Constants & Macros
 ******************************************************************************/
 /* Below two values adds up to 8 sec retry to address IOT issues*/
-#define STREAM_START_MAX_RETRY_COUNT 10
-#define STREAM_START_MAX_RETRY_LOOPER 8
+#define STREAM_START_MAX_RETRY_COUNT 5
+#define STREAM_START_MAX_RETRY_LOOPER 6
 #define CTRL_CHAN_RETRY_COUNT 3
-#define CHECK_A2DP_READY_MAX_COUNT 20
+#define CHECK_A2DP_READY_MAX_COUNT 5
 
 #define CASE_RETURN_STR(const) case const: return #const;
 
@@ -286,11 +286,12 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         sbc_codec.bitrate |= (*p_cfg++ << 8);
         sbc_codec.bitrate |= (*p_cfg++ << 16);
         sbc_codec.bitrate |= (*p_cfg++ << 24);
+        sbc_codec.bits_per_sample = *(uint32_t *)p_cfg;
         *codec_type = AUDIO_FORMAT_SBC;
 
         if(sample_freq) *sample_freq = sbc_codec.sampling_rate;
 
-        ALOGW("SBC: Done copying full codec config");
+        ALOGW("SBC: Done copying full codec config bits_per_sample : %d", sbc_codec.bits_per_sample);
         return ((void *)(&sbc_codec));
     } else if (codec_cfg[CODEC_OFFSET] == CODEC_TYPE_AAC)
     {
@@ -385,11 +386,11 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
 
         aac_bit_rate |= 0x000000FF & (((uint32_t)byte));
         aac_codec.bitrate = aac_bit_rate;
-
+        aac_codec.bits_per_sample = *(uint32_t *)p_cfg;
         *codec_type = AUDIO_FORMAT_AAC;
 
         if(sample_freq) *sample_freq = aac_codec.sampling_rate;
-        ALOGW("AAC: Done copying full codec config");
+        ALOGW("AAC: Done copying full codec config bits_per_sample : %d", aac_codec.bits_per_sample);
         return ((void *)(&aac_codec));
     }
     else if (codec_cfg[CODEC_OFFSET] == NON_A2DP_CODEC_TYPE)
@@ -457,9 +458,9 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                 case A2DP_APTX_ADAPTIVE_CHANNELS_MONO:
                      aptx_adaptive_codec.channel_mode = 1;
                      break;
-                /*case A2DP_APTX_ADAPTIVE_CHANNELS_STEREO:
+                case A2DP_APTX_ADAPTIVE_CHANNELS_TWS_MONO:
                      aptx_adaptive_codec.channel_mode = 2;
-                     break;*/
+                     break;
                 case A2DP_APTX_ADAPTIVE_CHANNELS_JOINT_STEREO:
                      aptx_adaptive_codec.channel_mode = 0;
                      break;
@@ -467,7 +468,7 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                      aptx_adaptive_codec.channel_mode = 4;
                      break;
                 default:
-                     ALOGE("Unknown sampling rate");
+                     ALOGE("Unknown channel id");
             }
             len--;
 
@@ -488,6 +489,8 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
 
             p_cfg += 3; // ignoring eoc bits
             len -= 3;
+            p_cfg += APTX_ADAPTIVE_RESERVED_BITS;
+            len -= APTX_ADAPTIVE_RESERVED_BITS;
             ALOGW("%s: ## aptXAdaptive ## sampleRate 0x%x", __func__, aptx_adaptive_codec.sampling_rate);
             ALOGW("%s: ## aptXAdaptive ## channelMode 0x%x", __func__, aptx_adaptive_codec.channel_mode);
             ALOGW("%s: ## aptXAdaptive ## ttp_ll_0 0x%x", __func__, aptx_adaptive_codec.TTP_LL_low);
@@ -501,6 +504,16 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
                 ALOGW("%s: codec config copied", __func__);
             else
                 ALOGW("%s: codec config length error: %d", __func__, len);
+
+            aptx_adaptive_codec.mtu = *(uint16_t *)p_cfg;
+            p_cfg += 6;
+            aptx_adaptive_codec.bits_per_sample = *(uint32_t *)p_cfg;
+            p_cfg += 4;
+            aptx_adaptive_codec.aptx_mode= *(uint16_t *)p_cfg;
+
+            ALOGW("%s: ## aptXAdaptive ## MTU =  %d", __func__, aptx_adaptive_codec.mtu);
+            ALOGW("%s: ## aptXAdaptive ## Bits Per Sample =  %d", __func__, aptx_adaptive_codec.bits_per_sample);
+            ALOGW("%s: ## aptXAdaptive ## Mode =  %d", __func__, aptx_adaptive_codec.aptx_mode);
 
             return ((void *)&aptx_adaptive_codec);
         }
@@ -571,9 +584,9 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         aptx_codec.bitrate |= (*p_cfg++ << 8);
         aptx_codec.bitrate |= (*p_cfg++ << 16);
         aptx_codec.bitrate |= (*p_cfg++ << 24);
-
+        aptx_codec.bits_per_sample = *(uint32_t *)p_cfg;
         if(sample_freq) *sample_freq = aptx_codec.sampling_rate;
-        ALOGW("APTx: Done copying full codec config");
+        ALOGW("APTx: Done copying full codec config bits_per_sample : %d", aptx_codec.bits_per_sample);
         if (*codec_type == ENC_CODEC_TYPE_APTX_DUAL_MONO)
         {
             memset(&aptx_tws_codec, 0, sizeof(audio_aptx_tws_encoder_config_t));
@@ -963,7 +976,14 @@ void bt_stack_on_check_a2dp_ready(tA2DP_CTRL_ACK status)
 
 void bt_stack_on_get_sink_latency(uint16_t latency)
 {
-    ALOGW("bt_stack_on_get_sink_latency");
+    if(update_initial_sink_latency == false)
+    {
+        ALOGW("bt_stack_on_get_sink_latency: Async Latency Update");
+        audio_stream.sink_latency = latency;
+        return;
+    }
+
+    ALOGW("bt_stack_on_get_sink_latency: %d", latency);
     pthread_mutex_lock(&audio_stream.ack_lock);
     audio_stream.sink_latency = latency;
     resp_received = true;
@@ -1213,7 +1233,8 @@ int audio_stop_stream()
                 audio_stream.ack_status = A2DP_CTRL_ACK_UNKNOWN;
                 if (status == A2DP_CTRL_ACK_SUCCESS) ret = 0;
             }
-            else if (status == A2DP_CTRL_ACK_SUCCESS)
+
+            if (status == A2DP_CTRL_ACK_SUCCESS)
             {
                 ALOGW("audio stop stream successful");
                 audio_stream.state = AUDIO_A2DP_STATE_STANDBY;
@@ -1289,7 +1310,8 @@ int audio_suspend_stream()
                 status = audio_stream.ack_status;
                 audio_stream.ack_status = A2DP_CTRL_ACK_UNKNOWN;
             }
-            else if (status == A2DP_CTRL_ACK_SUCCESS)
+
+            if (status == A2DP_CTRL_ACK_SUCCESS)
             {
                 ALOGW("audio suspend stream successful");
                 audio_stream.state = AUDIO_A2DP_STATE_SUSPENDED;
@@ -1629,8 +1651,8 @@ void ldac_codec_parser(uint8_t *codec_cfg)
     ldac_codec.bitrate |= (*p_cfg++ << 24);
 
     ldac_codec.is_abr_enabled = (ldac_codec.bitrate == 0);
-
-    ALOGW("Create Lookup for %d with ABR %d", ldac_codec.sampling_rate, ldac_codec.is_abr_enabled);
+    ldac_codec.bits_per_sample = *(uint32_t *)p_cfg;
+    ALOGW("Create Lookup for %d with ABR %d, bits_per_sample %d", ldac_codec.sampling_rate, ldac_codec.is_abr_enabled, ldac_codec.bits_per_sample);
     if (ldac_codec.sampling_rate == 44100 ||
             ldac_codec.sampling_rate == 88200) {
         int num_of_level_entries =
