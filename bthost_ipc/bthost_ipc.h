@@ -99,7 +99,7 @@ typedef enum {
     A2DP_CTRL_GET_CONNECTION_STATUS,
 } tA2DP_CTRL_EXT_CMD;
 
-#define  MAX_CODEC_CFG_SIZE  30
+#define  MAX_CODEC_CFG_SIZE  64
 struct a2dp_config {
     uint32_t                rate;
     uint32_t                channel_flags;
@@ -155,6 +155,9 @@ codec specific definitions
 #ifndef APTX_ADAPTIVE_CODEC_ID
 #define APTX_ADAPTIVE_CODEC_ID 0xAD
 #endif
+#ifndef APTX_ADAPTIVE_RESERVED_BITS
+#define APTX_ADAPTIVE_RESERVED_BITS 23
+#endif
 #ifndef APTX_TWS_CODEC_ID
 #define APTX_TWS_CODEC_ID 0x25
 #endif
@@ -201,7 +204,7 @@ codec specific definitions
 
 /* APTX Adaptive bitmask helper */
 #define A2D_APTX_ADAPTIVE_SAMP_FREQ_MASK           (0xF8)
-#define A2D_APTX_ADAPTIVE_CHAN_MASK                (0x0F)
+#define A2D_APTX_ADAPTIVE_CHAN_MASK                (0x1F)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_44100        (0x08)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_48000        (0x10)
 #define A2DP_APTX_ADAPTIVE_SAMPLERATE_88000        (0x20)
@@ -278,6 +281,7 @@ typedef struct {
     uint8_t  min_bitpool;   /* 2 */
     uint8_t  max_bitpool;   /*53(44.1khz),51 (48khz) */
     uint32_t bitrate;      /* 320kbps to 512kbps */
+    uint32_t bits_per_sample;
 } audio_sbc_encoder_config_t;
 
 
@@ -289,6 +293,7 @@ typedef struct {
     uint16_t sampling_rate;
     uint8_t  channels;
     uint32_t bitrate;
+    uint32_t bits_per_sample;
 } audio_aptx_encoder_config_t;
 
 /* Information about BT APTX Adaptive encoder
@@ -312,6 +317,8 @@ typedef struct {
     uint8_t TTP_HQ_high;
     uint8_t TTP_TWS_low;
     uint8_t TTP_TWS_high;
+    uint32_t bits_per_sample;
+    uint16_t aptx_mode;
 } audio_aptx_adaptive_encoder_config_t;
 
 struct bit_rate_level_map_t {
@@ -345,6 +352,7 @@ typedef struct {
     uint16_t mtu;
     bool is_abr_enabled;
     struct quality_level_to_bitrate_info level_to_bitrate_map;
+    uint32_t bits_per_sample;
 } audio_ldac_encoder_config_t;
 
 /* Information about BT AAC encoder configuration
@@ -357,6 +365,7 @@ typedef struct {
     uint16_t channels; /* 1-Mono, 2-Stereo */
     uint32_t sampling_rate;
     uint32_t bitrate;
+    uint32_t bits_per_sample;
 } audio_aac_encoder_config_t;
 
 typedef struct {
