@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dd2053a_3dc896b8",
+        "filename": "libbt-vendor/src/bt_vendor_qcom.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2019-02-21T10:48:59Z",
+      "side": 1,
+      "message": "PREFIX would suit better here, imo.",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 15
+      },
+      "revId": "6695f869f6de0adf24488ff03d53d9829bbd73af",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": true
+    }
+  ]
+}
