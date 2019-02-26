@@ -101,6 +101,7 @@ static int test = 0;
 static bool update_initial_sink_latency = false;
 int wait_for_stack_response(uint8_t time_to_wait);
 bool resp_received = false;
+uint8_t tws_channelmode = 0;
 static char a2dp_hal_imp[PROPERTY_VALUE_MAX] = "false";
 /*****************************************************************************
 **  Static functions
@@ -585,6 +586,8 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         aptx_codec.bitrate |= (*p_cfg++ << 16);
         aptx_codec.bitrate |= (*p_cfg++ << 24);
         aptx_codec.bits_per_sample = *(uint32_t *)p_cfg;
+        tws_channelmode = *(p_cfg+4);
+        ALOGW("APTx: tws channel mode =%d\n", tws_channelmode);
         if(sample_freq) *sample_freq = aptx_codec.sampling_rate;
         ALOGW("APTx: Done copying full codec config bits_per_sample : %d", aptx_codec.bits_per_sample);
         if (*codec_type == ENC_CODEC_TYPE_APTX_DUAL_MONO)
@@ -1492,6 +1495,16 @@ uint16_t audio_get_a2dp_sink_latency()
     }
     pthread_mutex_unlock(&audio_stream.lock);
     return audio_stream.sink_latency;
+}
+
+/* Returns true if TWS encoder to be configure with mono mode
+        False if TWS encoder to be configured with stereo mode */
+bool isTwsMonomodeEnable(void)
+{
+   if (tws_channelmode)
+        return true;
+   else
+       return false;
 }
 
 bool audio_is_scrambling_enabled(void)

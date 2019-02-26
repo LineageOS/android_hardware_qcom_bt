@@ -426,5 +426,6 @@ int audio_check_a2dp_ready(void);
 uint16_t audio_get_a2dp_sink_latency();
 bool audio_is_scrambling_enabled(void);
 int wait_for_stack_response(uint8_t duration);
+bool isTwsMonomodeEnable(void);
 #endif
 
