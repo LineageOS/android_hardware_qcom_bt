@@ -305,6 +305,7 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
         if (is_AAC_frame_ctrl_enable) {
           uint16_t aac_samp_freq = 0;
           uint32_t aac_bit_rate = 0;
+          uint32_t aac_bit_rate_mtu_based = 0;
           memset(&aac_codec_v2,0,sizeof(audio_aac_encoder_config_v2_t));
           p_cfg++;//skip dev idx
           len = *p_cfg++;
@@ -401,11 +402,15 @@ static void* a2dp_codec_parser(uint8_t *codec_cfg, audio_format_t *codec_type,
           //(p_cfg(+2 is because of mtu filled in stack is of 2bytes)
           p_cfg = p_cfg + 2;
 
-          aac_codec_v2.bitrate = *(uint32_t *)p_cfg;
+          aac_bit_rate_mtu_based = *(uint32_t *)p_cfg;
+          ALOGW("%s: MTU based bitrate from stack: %d",__func__, aac_bit_rate_mtu_based);
+          if ((aac_bit_rate <= 0) || (aac_bit_rate > aac_bit_rate_mtu_based)) {
+            aac_codec_v2.bitrate = aac_bit_rate_mtu_based;
+            ALOGW("%s:AAC bitrate overwritten with actual value fetched frm stack based on MTU: %d",
+                        __func__, aac_codec_v2.bitrate);
+          }
           //p_cfg(+4 is because of bitrate filled in stack is occupying 4 bytes.
           p_cfg = p_cfg + 4;
-          ALOGW("%s: AAC bitrate overwritten with actual value fetched from stack: %d",
-                      __func__, aac_codec_v2.bitrate);
 
           aac_codec_v2.bits_per_sample = *(uint32_t *)p_cfg;
           *codec_type = AUDIO_FORMAT_AAC;
