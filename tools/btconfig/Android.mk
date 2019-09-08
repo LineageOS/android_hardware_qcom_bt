@@ -14,7 +14,7 @@ LOCAL_SRC_FILES:= \
               btconfig.c
 
 LOCAL_MULTILIB := 32
-LOCAL_MODULE_TAGS := debug optional
+LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE :=btconfig
 
 LOCAL_SHARED_LIBRARIES += libcutils   \
