@@ -64,7 +64,7 @@ LOCAL_SHARED_LIBRARIES := \
 #        libbtnv
 #LOCAL_CFLAGS += -DBT_NV_SUPPORT
 
-LOCAL_CFLAGS += -Wno-error
+LOCAL_CFLAGS += -Wno-error -Wno-implicit-function-declaration
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
