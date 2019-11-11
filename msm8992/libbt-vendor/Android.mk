@@ -59,6 +59,8 @@ LOCAL_SHARED_LIBRARIES := \
         libcutils \
         liblog
 
+LOCAL_HEADER_LIBRARIES := \
+        libutils_headers
 
 # if read from bt nv
 #        libbtnv
