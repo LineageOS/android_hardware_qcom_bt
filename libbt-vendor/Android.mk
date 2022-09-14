@@ -46,6 +46,7 @@ LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/include \
         external/bluetooth/bluedroid/hci/include \
         system/bt/hci/include \
+        packages/modules/Bluetooth/system/hci/include \
         $(TARGET_OUT_HEADERS)/bt/hci_qcomm_init
 
 ifeq ($(BOARD_HAS_QCA_BT_AR3002), true)

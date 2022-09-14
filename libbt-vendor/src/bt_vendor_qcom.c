@@ -35,6 +35,13 @@
 
 #include <fcntl.h>
 #include <linux/un.h>
+
+// We prefer using the copy of sockaddr_storage from bionic
+// Undefine the copy from the kernel to prevent duplication.
+#ifdef sockaddr_storage
+#undef sockaddr_storage
+#endif
+
 #include <pthread.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
