@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "603699ac_ecb58c6f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4550
+      },
+      "writtenOn": "2022-09-20T20:52:16Z",
+      "side": 1,
+      "message": "https://review.lineageos.org/c/LineageOS/android_kernel_google_msm-4.9/+/338318",
+      "revId": "a068f04eea57984d17727506bc2ef22a362154a2",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
