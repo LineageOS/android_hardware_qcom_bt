@@ -16,6 +16,24 @@
       "message": "https://review.lineageos.org/c/LineageOS/android_kernel_google_msm-4.9/+/338318",
       "revId": "a068f04eea57984d17727506bc2ef22a362154a2",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "73eecc4b_65a6154b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 26777
+      },
+      "writtenOn": "2022-09-22T08:18:39Z",
+      "side": 1,
+      "message": "Yeah that\u0027s a better idea, we could simply remove the undef part.",
+      "parentUuid": "603699ac_ecb58c6f",
+      "revId": "a068f04eea57984d17727506bc2ef22a362154a2",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
