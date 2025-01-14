@@ -16,6 +16,24 @@
       "message": "Does msm8909 / msm8909w_3100 here include support for msm-3.18 / msm-4.9 based devices?",
       "revId": "253a606c588628ed243e339bbbed46e6f9920e35",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d697b77_8e8ead18",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 4550
+      },
+      "writtenOn": "2025-01-14T08:43:32Z",
+      "side": 1,
+      "message": "There is no official shipping msm8909 device on 22.1 (or one that shipped in any previous version). You shouldn\u0027t be using this HAL anyway, this is only meant for pixels, the rest used hardware/qcom-caf/bt",
+      "parentUuid": "6404aa51_3910cf02",
+      "revId": "253a606c588628ed243e339bbbed46e6f9920e35",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
