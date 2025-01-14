@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6404aa51_3910cf02",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 26777
+      },
+      "writtenOn": "2025-01-14T05:48:54Z",
+      "side": 1,
+      "message": "Does msm8909 / msm8909w_3100 here include support for msm-3.18 / msm-4.9 based devices?",
+      "revId": "253a606c588628ed243e339bbbed46e6f9920e35",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
