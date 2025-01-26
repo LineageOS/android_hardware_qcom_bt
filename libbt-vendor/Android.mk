@@ -100,8 +100,6 @@ ifeq ($(QCOM_BT_USE_OLD_WCNSS_FILTER),true)
 LOCAL_CFLAGS += -DUSE_OLD_WCNSS_FILTER
 endif
 
-#include $(LOCAL_PATH)/vnd_buildcfg.mk
-
 include $(BUILD_SHARED_LIBRARY)
 
 endif # BOARD_HAVE_BLUETOOTH_QCOM
