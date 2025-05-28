@@ -450,7 +450,7 @@ static int bt_powerup(int en )
             return -1;
         }
     }
-    /* Always perform BT power action so as to have the chance to 
+    /* Always perform BT power action so as to have the chance to
        recover BT power properly from un-expected error. */
 #ifdef CHECK_BT_POWER_PERFORM_ACTION
     if(can_perform_action(on) == false) {
@@ -752,7 +752,7 @@ static int __op(bt_vendor_opcode_t opcode, void *param)
     int i = 0;
     static char bd_addr[PROPERTY_VALUE_MAX];
     uint8_t local_bd_addr_from_prop[6];
-    char* tok;
+    char* tok, * save;
 #endif
     bool skip_init = true;
     int  opcode_init = opcode;
@@ -938,7 +938,7 @@ userial_open:
                                 ignore_boot_prop = FALSE;
                                 if (property_get(BLUETOOTH_MAC_ADDR_BOOT_PROPERTY, bd_addr, NULL)) {
                                     ALOGV("BD address read from Boot property: %s\n", bd_addr);
-                                    tok =  strtok(bd_addr, ":");
+                                    tok =  strtok_r(bd_addr, ":", &save);
                                     while (tok != NULL) {
                                         ALOGV("bd add [%d]: %ld ", i, strtol(tok, NULL, 16));
                                         if (i>=6) {
@@ -952,7 +952,7 @@ userial_open:
                                             break;
                                         }
                                         local_bd_addr_from_prop[5-i] = strtol(tok, NULL, 16);
-                                        tok = strtok(NULL, ":");
+                                        tok = strtok_r(NULL, ":", &save);
                                         i++;
                                     }
                                     if (i == 6 && !ignore_boot_prop) {
