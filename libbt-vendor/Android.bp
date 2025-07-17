@@ -1,0 +1,54 @@
+//
+// SPDX-FileCopyrightText: 2012 The Android Open Source Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+soong_namespace {
+}
+
+cc_library_shared {
+    name: "libbt-vendor",
+    owner: "qcom",
+    vendor: true,
+
+    cflags: [
+        "-DBT_NV_SUPPORT",
+        "-DBT_NV_SUPPORT_DL",
+        "-Wno-enum-conversion",
+        "-Wno-incompatible-pointer-types-discards-qualifiers",
+        "-Wno-unused-function",
+        "-Wno-unused-label",
+        "-Wno-unused-parameter",
+        "-Wno-unused-variable",
+        "-Wno-user-defined-warnings",
+    ],
+
+    srcs: [
+        "src/bt_vendor_qcom.c",
+        "src/hardware.c",
+        "src/hci_uart.c",
+        "src/hci_smd.c",
+        "src/hw_rome.c",
+        "src/hw_ar3k.c",
+        "src/bt_vendor_persist.cpp",
+    ],
+
+    include_dirs: [
+        "packages/modules/Bluetooth/system/hci/include",
+    ],
+
+    local_include_dirs: [
+        "include"
+    ],
+
+    header_libs: [
+        "generated_kernel_headers",
+        "libutils_headers",
+    ],
+
+    shared_libs: [
+        "libcutils",
+        "libdl",
+        "liblog",
+    ],
+}
