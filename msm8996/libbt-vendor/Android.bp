@@ -1,0 +1,61 @@
+//
+// SPDX-FileCopyrightText: 2012 The Android Open Source Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+soong_namespace {
+}
+
+package {
+    default_applicable_licenses: ["hardware_qcom_bt_msm8996_license"],
+}
+
+license {
+    name: "hardware_qcom_bt_msm8996_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD",
+        "legacy_not_a_contribution",
+    ],
+    license_text: [
+        "NOTICE",
+    ],
+}
+
+cc_library_shared {
+    name: "libbt-vendor",
+    owner: "qcom",
+    vendor: true,
+
+    cflags: [
+        "-DBT_SOC_TYPE_ROME",
+        "-Wno-error",
+    ],
+
+    srcs: [
+        "src/bt_vendor_qcom.c",
+        "src/hardware.c",
+        "src/hci_uart.c",
+        "src/hci_smd.c",
+        "src/hw_rome.c",
+        "src/hw_ar3k.c",
+    ],
+
+    include_dirs: [
+        "packages/modules/Bluetooth/system/hci/include",
+    ],
+
+    local_include_dirs: [
+        "include"
+    ],
+
+    header_libs: [
+        "generated_kernel_headers",
+    ],
+
+    shared_libs: [
+        "libcutils",
+        "liblog",
+    ],
+}
