@@ -30,11 +30,6 @@ cc_library_shared {
 
     cflags: [
         "-Werror",
-        "-Wno-error=user-defined-warnings",
-        "-Wno-incompatible-pointer-types-discards-qualifiers",
-        "-Wno-unused-function",
-        "-Wno-unused-label",
-        "-Wno-unused-variable",
     ],
 
     srcs: [

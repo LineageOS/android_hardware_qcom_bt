@@ -30,7 +30,7 @@ cc_library_shared {
 
     cflags: [
         "-DBT_SOC_TYPE_ROME",
-        "-Wno-error",
+        "-Werror",
     ],
 
     srcs: [
