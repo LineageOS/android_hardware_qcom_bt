@@ -52,7 +52,6 @@ extern "C" {
 #include <stdbool.h>
 #include <unistd.h>
 
-#include "bt_hci_bdroid.h"
 #include "bt_vendor_qcom.h"
 #include "hci_uart.h"
 #include "hw_rome.h"
