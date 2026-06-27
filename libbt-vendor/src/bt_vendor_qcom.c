@@ -340,7 +340,7 @@ int start_hci_filter() {
        int i, init_success = -1;
        char value[PROPERTY_VALUE_MAX] = {'\0'};
 
-       property_get(BT_VND_FILTER_START, value, false);
+       property_get(BT_VND_FILTER_START, value, "false");
 
        if (strcmp(value, "true") == 0) {
            ALOGI("%s: hci_filter has been started already", __func__);
@@ -906,7 +906,7 @@ userial_open:
                     case BT_SOC_ROME:
                         {
                             wait_for_patch_download(is_ant_req);
-                            property_get("ro.vendor.bluetooth.emb_wp_mode", emb_wp_mode, false);
+                            property_get("ro.vendor.bluetooth.emb_wp_mode", emb_wp_mode, "false");
                             if (!is_soc_initialized()) {
                                 char* dlnd_inprog = is_ant_req ? "ant" : "bt";
                                 if (property_set(PREFIX "wc_transport.patch_dnld_inprog", dlnd_inprog) < 0) {
@@ -924,7 +924,7 @@ userial_open:
                                 userial_clock_operation(fd, USERIAL_OP_CLK_ON);
 
                                 if(strcmp(emb_wp_mode, "true") == 0) {
-                                    property_get("ro.vendor.bluetooth.wipower", wipower_status, false);
+                                    property_get("ro.vendor.bluetooth.wipower", wipower_status, "false");
                                     if(strcmp(wipower_status, "true") == 0) {
                                         check_embedded_mode(fd);
                                     } else {
@@ -1051,7 +1051,7 @@ userial_open:
                         break;
                     case BT_SOC_CHEROKEE:
                         {
-                            property_get("ro.vendor.bluetooth.emb_wp_mode", emb_wp_mode, false);
+                            property_get("ro.vendor.bluetooth.emb_wp_mode", emb_wp_mode, "false");
                             retval = start_hci_filter();
 
                             if (retval < 0) {
