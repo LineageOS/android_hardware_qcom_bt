@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "751c920e_3e417028",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 32253
+      },
+      "writtenOn": "2026-08-13T21:02:52Z",
+      "side": 1,
+      "message": "Hold it till i get bluetooth up and running.",
+      "revId": "2141b0040b518f9fcbb12be02cd9c962c5a8bc7e",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
